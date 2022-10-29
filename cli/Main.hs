@@ -1,13 +1,16 @@
+
+
 module Main (
   main
 ) where
 
 
-import Language.Marlowe.Lambda (handler)
+import Data.Default (def)
+import Language.Marlowe.Lambda (handle)
 
 
 main :: IO ()
 main =
    do
      input <- getContents
-     print =<< handler input undefined
+     print =<< handle input def

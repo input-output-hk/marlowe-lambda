@@ -12,10 +12,21 @@ extra-source-files : ReadMe.md
 
 library
   exposed-modules   : Language.Marlowe.Lambda
+                      Language.Marlowe.Lambda.Client
+                      Language.Marlowe.Lambda.List
   hs-source-dirs    : src
   build-depends     : base >= 4.9 && < 5
                     , aws-lambda-haskell-runtime
-                    , marlowe
+                    , bytestring
+                    , containers
+                    , data-default
+                    , marlowe-protocols
+                    , marlowe-runtime
+                    , monad-control
+                    , transformers
+                    , transformers-base
+                    , network
+                    , typed-protocols
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
                       -Wincomplete-uni-patterns
@@ -30,6 +41,7 @@ executable marlowe-lambda
   hs-source-dirs    : app
   build-depends     : base >= 4.9 && < 5
                     , aws-lambda-haskell-runtime
+                    , data-default
                     , marlowe-lambda
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
@@ -44,6 +56,7 @@ executable marlowe-lambda-cli
   main-is           : Main.hs
   hs-source-dirs    : cli
   build-depends     : base >= 4.9 && < 5
+                    , data-default
                     , marlowe-lambda
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances

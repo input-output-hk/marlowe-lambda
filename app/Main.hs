@@ -8,12 +8,12 @@ module Main (
 ) where
 
 
-import Aws.Lambda
-
-import qualified Language.Marlowe.Lambda as Marlowe
+import Aws.Lambda (addStandaloneLambdaHandler, defaultDispatcherOptions, runLambdaHaskellRuntime)
+import Data.Default (def)
+import Language.Marlowe.Lambda (handler)
 
 
 main :: IO ()
 main =
-  runLambdaHaskellRuntime defaultDispatcherOptions (pure ()) id
-    $ addStandaloneLambdaHandler "handler" Marlowe.handler
+  runLambdaHaskellRuntime defaultDispatcherOptions def id
+    $ addStandaloneLambdaHandler "marlowe" handler

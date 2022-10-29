@@ -1,9 +1,12 @@
 index-state: 2022-04-11T18:57:22Z
+-- index-state: 2022-10-29T01:37:02Z
 
 packages: .
 
 tests: False
+
 benchmarks: False
+
 optimization: False
 
 flags: +defer-plugin-errors
@@ -14,7 +17,14 @@ package cardano-crypto-praos
   flags: -external-libsodium-vrf
 
 
--- From https://github.com/input-output-hk/marlowe-cardano/.
+source-repository-package
+  type: git
+  location: https://github.com/nomeata/aws-lambda-haskell-runtime.git
+  tag: fa19268282a5afff7aa0ba8babc723d835bed4f1
+  --sha256: 057g2hf9gws6qbbxgg2vlz9vi4s22lajf4fcifk8f39qssw094g0
+
+
+-- The following are from https://github.com/input-output-hk/marlowe-cardano/.
 
 
 source-repository-package

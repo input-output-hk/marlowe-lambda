@@ -29,7 +29,7 @@
                   ghcid                   = {};
                   haskell-language-server = {};
                   hie-bios                = {};
-                # hlint                   = {};
+                  hlint                   = {};
                   pointfree               = {};
                 };
                 # Non-Haskell shell tools go here

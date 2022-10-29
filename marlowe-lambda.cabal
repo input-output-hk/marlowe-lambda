@@ -12,8 +12,10 @@ extra-source-files : ReadMe.md
 
 executable marlowe-lambda
   main-is           : Main.hs
+  other-modules     : Language.Marlowe.Lambda
   hs-source-dirs    : app
   build-depends     : base >= 4.9 && < 5
+                    , aws-lambda-haskell-runtime
                     , marlowe
   ghc-options       : -Wall
   default-language  : Haskell2010

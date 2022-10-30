@@ -16,6 +16,7 @@ library
                       Language.Marlowe.Lambda.List
   hs-source-dirs    : src
   build-depends     : base >= 4.9 && < 5
+                    , aeson
                     , aws-lambda-haskell-runtime
                     , bytestring
                     , containers
@@ -23,10 +24,12 @@ library
                     , marlowe-protocols
                     , marlowe-runtime
                     , monad-control
+                    , network
+                    , text
                     , transformers
                     , transformers-base
-                    , network
                     , typed-protocols
+                    , vector
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
                       -Wincomplete-uni-patterns
@@ -57,6 +60,8 @@ executable marlowe-lambda-cli
   main-is           : Main.hs
   hs-source-dirs    : cli
   build-depends     : base >= 4.9 && < 5
+                    , aeson
+                    , bytestring
                     , data-default
                     , marlowe-lambda
   ghc-options       : -Wall

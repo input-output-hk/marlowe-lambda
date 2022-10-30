@@ -12,23 +12,30 @@ module Language.Marlowe.Lambda (
 
 import Aws.Lambda (Context(Context, customContext))
 import Control.Exception (SomeException, catch)
+import Data.Aeson
 import Data.IORef (readIORef)
+import Language.Marlowe.Runtime.Core.Api (renderContractId)
 import Language.Marlowe.Lambda.Client (Config, runLambdaWithConfig)
 import Language.Marlowe.Lambda.List (listContracts)
 
+import qualified Data.Text as T (pack)
+import qualified Data.Vector as V (fromList)
 
-handle :: String
+
+handle :: Value
        -> Config
-       -> IO (Either String String)
+       -> IO (Either Value Value)
 handle _ config =
-  do
-    (Right . show <$> runLambdaWithConfig config listContracts)
-       `catch` \(err :: SomeException) -> pure $ Left $ show err
+  let
+    format = Array . V.fromList . fmap (String . renderContractId )
+  in
+    (fmap format . Right <$> runLambdaWithConfig config listContracts)
+       `catch` \(err :: SomeException) -> pure $ Left $ String $ T.pack $ show err
 
 
-handler :: String
+handler :: Value
         -> Context Config
-        -> IO (Either String String)
+        -> IO (Either Value Value)
 handler input Context{customContext} =
   do
     config <- readIORef customContext

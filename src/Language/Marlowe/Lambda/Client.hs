@@ -2,7 +2,6 @@
 
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -21,22 +20,18 @@ import Control.Exception (Exception, bracket, bracketOnError, throwIO)
 import Control.Monad.Trans.Control (liftBaseWith)
 import Control.Monad.Trans.Reader (ReaderT(..), ask)
 import Data.ByteString.Lazy (ByteString)
-import Language.Marlowe.Lambda.Types
-import Language.Marlowe.Protocol.Sync.Client (marloweSyncClientPeer)
+import Language.Marlowe.Lambda.Types (Config(..), Lambda(..), RunClient, Services(..))
+import Language.Marlowe.Protocol.Sync.Client (MarloweSyncClient, hoistMarloweSyncClient, marloweSyncClientPeer)
 import Language.Marlowe.Protocol.Sync.Codec (codecMarloweSync)
 import Network.Channel (socketAsChannel)
 import Network.Protocol.Driver (mkDriver)
 import Network.Protocol.Job.Client (JobClient, hoistJobClient, jobClientPeer)
 import Network.Protocol.Job.Codec (codecJob)
 import Network.Protocol.Query.Client (QueryClient, hoistQueryClient, queryClientPeer)
-import Language.Marlowe.Protocol.Sync.Client (MarloweSyncClient, hoistMarloweSyncClient)
 import Network.Protocol.Query.Codec (codecQuery)
 import Network.Socket (AddrInfo, SocketType(..), addrSocketType, defaultHints, getAddrInfo, addrAddress, addrSocketType, close, connect, openSocket)
 import Network.TypedProtocol (Driver(startDState), Peer, PeerRole(..), runPeerWithDriver)
 import Network.TypedProtocol.Codec (Codec)
-
-
--- FIXME: Waiting for impredicative polymorphism.
 
 
 runJobClient

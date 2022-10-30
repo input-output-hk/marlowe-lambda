@@ -12,6 +12,7 @@ extra-source-files : ReadMe.md
 
 library
   exposed-modules   : Language.Marlowe.Lambda
+                      Language.Marlowe.Lambda.Build
                       Language.Marlowe.Lambda.Client
                       Language.Marlowe.Lambda.List
                       Language.Marlowe.Lambda.Types
@@ -20,6 +21,7 @@ library
                     , aeson
                     , aws-lambda-haskell-runtime
                     , bytestring
+                    , cardano-api
                     , containers
                     , data-default
                     , marlowe
@@ -29,6 +31,7 @@ library
                     , monad-control
                     , network
                     , text
+                    , time
                     , transformers
                     , transformers-base
                     , typed-protocols

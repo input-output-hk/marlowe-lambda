@@ -14,11 +14,13 @@ module Language.Marlowe.Lambda (
 
 import Aws.Lambda (Context(Context, customContext))
 import Control.Exception (SomeException, catch)
+import Data.Bifunctor (second)
 import Data.IORef (readIORef)
-import Language.Marlowe.Runtime.Core.Api (MarloweVersionTag(V1))
+import Language.Marlowe.Lambda.Build (buildApplication, buildCreation, buildWithdrawal)
 import Language.Marlowe.Lambda.Client (runLambdaWithConfig)
 import Language.Marlowe.Lambda.List (allContracts, followContract, followedContracts, getContract, unfollowContract)
-import Language.Marlowe.Lambda.Types (Config, MarloweRequest(..), MarloweResponse(..))
+import Language.Marlowe.Lambda.Types (Config, MarloweRequest(..), MarloweResponse(..), mkBody)
+import Language.Marlowe.Runtime.Core.Api (MarloweVersion(MarloweV1), MarloweVersionTag(V1))
 
 
 handle :: MarloweRequest 'V1
@@ -33,7 +35,9 @@ handle request config =
         Follow{..} -> fmap FollowResult <$> followContract reqContractId
         Unfollow{..} -> fmap FollowResult <$> unfollowContract reqContractId
         Get{..} -> fmap (uncurry Info) <$> getContract reqContractId
-        _ -> error "Not implemented."
+        Create{..} -> second mkBody <$> buildCreation MarloweV1 reqContract reqRoles reqMinUtxo reqAddresses reqChange reqCollateral
+        Apply{..} -> second mkBody <$> buildApplication MarloweV1 reqContractId reqInputs reqValidityLowerBound reqValidityUpperBound reqAddresses reqChange reqCollateral
+        Withdraw{..} -> second mkBody <$> buildWithdrawal MarloweV1 reqContractId reqRole reqAddresses reqChange reqCollateral
       
   in
     runLambdaWithConfig config run

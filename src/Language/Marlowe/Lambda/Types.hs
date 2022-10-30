@@ -19,6 +19,7 @@ module Language.Marlowe.Lambda.Types (
 , Lambda(..)
 , MarloweRequest(..)
 , MarloweResponse(..)
+, mkBody
 ) where
 
 
@@ -32,19 +33,20 @@ import Data.Default (Default(..))
 import Data.String (fromString)
 import Language.Marlowe (POSIXTime(..))
 import Language.Marlowe.Protocol.Sync.Client (MarloweSyncClient)
-import Language.Marlowe.Runtime.ChainSync.Api (Address, Lovelace(..), ScriptHash(..), TokenName, TxId)
-import Language.Marlowe.Runtime.Core.Api
+import Language.Marlowe.Runtime.Cardano.Api (fromCardanoTxId)
+import Language.Marlowe.Runtime.ChainSync.Api (Address, Lovelace(..), ScriptHash(..), TokenName, TxId, TxOutRef)
+import Language.Marlowe.Runtime.Core.Api (ContractId, IsMarloweVersion(Redeemer, Contract), MarloweVersionTag(V1), Transaction(Transaction, output, redeemer, validityUpperBound, validityLowerBound, blockHeader, contractId, transactionId), TransactionScriptOutput(..), Payout(..), TransactionOutput(scriptOutput, payouts), renderContractId)
 import Language.Marlowe.Runtime.Discovery.Api (DiscoveryQuery)
-import Language.Marlowe.Runtime.History.Api
+import Language.Marlowe.Runtime.History.Api ( CreateStep(..), ContractStep(..), HistoryCommand, HistoryQuery, RedeemStep(RedeemStep, datum, redeemingTx, utxo))
 import Language.Marlowe.Runtime.Transaction.Api (MarloweTxCommand)
 import Network.Protocol.Job.Client (JobClient)
 import Network.Protocol.Query.Client (QueryClient)
 import Network.Socket (HostName, PortNumber)
 
-import qualified Data.Aeson as A
-import qualified Data.Aeson.Types as A
-import qualified Data.ByteString.Char8 as BS8
-import qualified Data.Map.Strict as M
+import qualified Data.Aeson.Types as A (FromJSON(parseJSON), Parser, ToJSON(toJSON), Value, (.=), (.:), object, withObject)
+import qualified Data.ByteString.Char8 as BS8 (unpack)
+import qualified Data.Map.Strict as M (Map, map, mapKeys)
+import qualified Cardano.Api as C (AsType(AsBabbageEra, AsTxBody), BabbageEra, TextEnvelope, TxBody, deserialiseFromTextEnvelope, getTxId, serialiseToTextEnvelope)
 
 
 data Config =
@@ -111,6 +113,7 @@ data MarloweRequest v =
     , reqMinUtxo :: Lovelace
     , reqAddresses :: [Address]
     , reqChange :: Address
+    , reqCollateral :: [TxOutRef]
     }
   | Apply
     { reqContractId :: ContractId
@@ -119,12 +122,14 @@ data MarloweRequest v =
     , reqValidityUpperBound :: POSIXTime
     , reqAddresses :: [Address]
     , reqChange :: Address
+    , reqCollateral :: [TxOutRef]
     }
   | Withdraw
     { reqContractId :: ContractId
     , reqRole :: TokenName
     , reqAddresses :: [Address]
     , reqChange :: Address
+    , reqCollateral :: [TxOutRef]
     }
 
 instance A.FromJSON (MarloweRequest 'V1) where
@@ -150,6 +155,7 @@ instance A.FromJSON (MarloweRequest 'V1) where
                           reqMinUtxo <- Lovelace <$> o A..: "minUtxO"
                           reqAddresses <- fmap fromString <$> o A..: "addresses"
                           reqChange <- fromString <$> o A..: "change"
+                          reqCollateral <- fmap fromString <$> o A..: "collateral"
                           pure Create{..}
             "apply" -> do
                          reqContractId <- fromString <$> o A..: "contractId"
@@ -158,12 +164,14 @@ instance A.FromJSON (MarloweRequest 'V1) where
                          reqValidityUpperBound <- POSIXTime <$> o A..: "validityUpperBound"
                          reqAddresses <- fmap fromString <$> o A..: "addresses"
                          reqChange <- fromString <$> o A..: "change"
+                         reqCollateral <- fmap fromString <$> o A..: "collateral"
                          pure Apply{..}
             "withdraw" -> do
                             reqContractId <- fromString <$> o A..: "contractId"
                             reqRole <- fromString <$> o A..: "role"
                             reqAddresses <- fmap fromString <$> o A..: "addresses"
                             reqChange <- fromString <$> o A..: "change"
+                            reqCollateral <- fmap fromString <$> o A..: "collateral"
                             pure Withdraw{..}
             request -> fail $ "Invalid request: " <> request <> "."
 
@@ -193,6 +201,7 @@ instance A.ToJSON (MarloweRequest 'V1) where
       , "roles" A..= M.mapKeys show reqRoles
       , "addresses" A..= reqAddresses
       , "change" A..= reqChange
+      , "collateral" A..= reqCollateral
       ] 
   toJSON Apply{..} =
     A.object
@@ -202,6 +211,7 @@ instance A.ToJSON (MarloweRequest 'V1) where
       , "validityUpperBound" A..= getPOSIXTime reqValidityUpperBound
       , "addresses" A..= reqAddresses
       , "change" A..= reqChange
+      , "collateral" A..= reqCollateral
       ] 
   toJSON Withdraw{..} =
     A.object
@@ -209,6 +219,7 @@ instance A.ToJSON (MarloweRequest 'V1) where
       , "role" A..= reqRole
       , "addresses" A..= reqAddresses
       , "change" A..= reqChange
+      , "collateral" A..= reqCollateral
       ]
 
 
@@ -225,7 +236,7 @@ data MarloweResponse v =
     }
   | Body
     { resTransactionId :: TxId
-    , resTransactionBody :: A.Value
+    , resTransactionBody :: C.TxBody C.BabbageEra
     }
 
 instance A.FromJSON (MarloweResponse 'V1) where
@@ -234,20 +245,13 @@ instance A.FromJSON (MarloweResponse 'V1) where
       $ \o ->
         (o A..: "response" :: A.Parser String)
           >>= \case
-            "contracts" -> do
-                             resContractIds <- fmap fromString <$> o A..: "contractIds"
-                             pure Contracts{..}
-            "result" -> do
-                          resResult <- o A..: "result"
-                          pure FollowResult{..}
+            "contracts" -> Contracts . fmap fromString <$> o A..: "contractIds"
+            "result" -> FollowResult <$> o A..: "result"
             "info" -> do
                         resCreation <- contractCreationFromJSON =<< o A..: "creation"
                         resSteps <- mapM contractStepFromJSON =<< o A..: "steps"
                         pure Info{..}
-            "body" -> do
-                        resTransactionId <- fromString <$> o A..: "contractId"
-                        resTransactionBody <- o A..: "body"
-                        pure Body{..}
+            "body" -> fmap mkBody <$> txBodyFromJSON =<< o A..: "body"
             response -> fail $ "Invalid response: " <> response <> "."
 
 instance A.ToJSON (MarloweResponse 'V1) where
@@ -270,8 +274,8 @@ instance A.ToJSON (MarloweResponse 'V1) where
   toJSON Body{..} =
     A.object
       [ "response" A..= ("body" :: String)
-      , "contractId" A..= resTransactionId
-      , "body" A..= resTransactionBody
+      , "txId" A..= C.getTxId resTransactionBody
+      , "body" A..= txBodyToJSON resTransactionBody
       ]
 
 
@@ -327,3 +331,26 @@ payoutToJSON Payout{..} =
     , "assets" A..= assets
     , "datum" A..= datum
     ]
+
+
+txBodyFromJSON :: C.TextEnvelope -> A.Parser (C.TxBody C.BabbageEra)
+txBodyFromJSON envelope =
+  do
+    case C.deserialiseFromTextEnvelope (C.AsTxBody C.AsBabbageEra) envelope of
+      Left msg -> fail $ show msg
+      Right body -> pure body
+
+txBodyToJSON :: C.TxBody C.BabbageEra -> A.Value
+txBodyToJSON body =
+  let
+    envelope = C.serialiseToTextEnvelope Nothing body
+  in
+    A.toJSON envelope
+
+
+mkBody :: C.TxBody C.BabbageEra -> MarloweResponse v
+mkBody resTransactionBody =
+  let
+    resTransactionId = fromCardanoTxId $ C.getTxId resTransactionBody
+  in
+    Body{..}

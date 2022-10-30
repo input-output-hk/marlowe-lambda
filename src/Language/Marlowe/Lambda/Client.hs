@@ -2,6 +2,7 @@
 
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -9,7 +10,9 @@
 
 
 module Language.Marlowe.Lambda.Client (
-  runQueryClient
+  runJobClient
+, runQueryClient
+, runSyncClient
 , runLambdaWithConfig
 ) where
 
@@ -23,16 +26,29 @@ import Language.Marlowe.Protocol.Sync.Client (marloweSyncClientPeer)
 import Language.Marlowe.Protocol.Sync.Codec (codecMarloweSync)
 import Network.Channel (socketAsChannel)
 import Network.Protocol.Driver (mkDriver)
-import Network.Protocol.Job.Client (jobClientPeer)
+import Network.Protocol.Job.Client (JobClient, hoistJobClient, jobClientPeer)
 import Network.Protocol.Job.Codec (codecJob)
 import Network.Protocol.Query.Client (QueryClient, hoistQueryClient, queryClientPeer)
+import Language.Marlowe.Protocol.Sync.Client (MarloweSyncClient, hoistMarloweSyncClient)
 import Network.Protocol.Query.Codec (codecQuery)
 import Network.Socket (AddrInfo, SocketType(..), addrSocketType, defaultHints, getAddrInfo, addrAddress, addrSocketType, close, connect, openSocket)
 import Network.TypedProtocol (Driver(startDState), Peer, PeerRole(..), runPeerWithDriver)
 import Network.TypedProtocol.Codec (Codec)
 
 
--- | Run a History Query client.
+-- FIXME: Waiting for impredicative polymorphism.
+
+
+runJobClient
+  :: (Services IO -> JobClient q IO a -> IO a)
+  -> JobClient q Lambda a
+  -> Lambda a
+runJobClient job client =
+  do
+    services <- Lambda ask
+    liftBaseWith $ \runInBase -> job services $ hoistJobClient runInBase client
+
+
 runQueryClient
   :: (Services IO -> QueryClient q IO a -> IO a)
   -> QueryClient q Lambda a
@@ -40,10 +56,17 @@ runQueryClient
 runQueryClient query client =
   do
     services <- Lambda ask
-    liftBaseWith
-      $ \runInBase ->
-        query services
-          $ hoistQueryClient runInBase client
+    liftBaseWith $ \runInBase -> query services $ hoistQueryClient runInBase client
+
+
+runSyncClient
+  :: (Services IO -> MarloweSyncClient IO a -> IO a)
+  -> MarloweSyncClient Lambda a
+  -> Lambda a
+runSyncClient sync client =
+  do
+    services <- Lambda ask
+    liftBaseWith $ \runInBase -> sync services $ hoistMarloweSyncClient runInBase client
 
 
 runLambdaWithConfig

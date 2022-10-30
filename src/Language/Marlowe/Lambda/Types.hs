@@ -32,7 +32,7 @@ import Data.Default (Default(..))
 import Data.String (fromString)
 import Language.Marlowe (POSIXTime(..))
 import Language.Marlowe.Protocol.Sync.Client (MarloweSyncClient)
-import Language.Marlowe.Runtime.ChainSync.Api (Address, Lovelace(..), TokenName, TxId)
+import Language.Marlowe.Runtime.ChainSync.Api (Address, Lovelace(..), ScriptHash(..), TokenName, TxId)
 import Language.Marlowe.Runtime.Core.Api
 import Language.Marlowe.Runtime.Discovery.Api (DiscoveryQuery)
 import Language.Marlowe.Runtime.History.Api
@@ -43,6 +43,7 @@ import Network.Socket (HostName, PortNumber)
 
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
+import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Map.Strict as M
 
 
@@ -96,10 +97,10 @@ data MarloweRequest v =
     List
   | Followed
   | Follow
-    { reqContractIds :: [ContractId]
+    { reqContractId :: ContractId
     }
   | Unfollow
-    { reqContractIds :: [ContractId]
+    { reqContractId :: ContractId
     }
   | Get
     { reqContractId :: ContractId
@@ -126,7 +127,6 @@ data MarloweRequest v =
     , reqChange :: Address
     }
 
-
 instance A.FromJSON (MarloweRequest 'V1) where
   parseJSON =
     A.withObject "MarloweRequest"
@@ -136,13 +136,13 @@ instance A.FromJSON (MarloweRequest 'V1) where
             "list" -> pure List
             "followed" -> pure Followed
             "follow" -> do
-                          reqContractIds <- fmap fromString <$> o A..: "ids"
+                          reqContractId <- fromString <$> o A..: "contractId"
                           pure Follow{..}
             "unfollow" -> do
-                            reqContractIds <- fmap fromString <$> o A..: "ids"
+                            reqContractId <- fromString <$> o A..: "contractId"
                             pure Unfollow{..}
             "get" -> do
-                       reqContractId <- fromString <$> o A..: "id"
+                       reqContractId <- fromString <$> o A..: "contractId"
                        pure Get{..}
             "create" -> do
                           reqContract <- o A..: "contract"
@@ -152,7 +152,7 @@ instance A.FromJSON (MarloweRequest 'V1) where
                           reqChange <- fromString <$> o A..: "change"
                           pure Create{..}
             "apply" -> do
-                         reqContractId <- fromString <$> o A..: "id"
+                         reqContractId <- fromString <$> o A..: "contractId"
                          reqInputs <- o A..: "inputs"
                          reqValidityLowerBound <- POSIXTime <$> o A..: "validityLowerBound"
                          reqValidityUpperBound <- POSIXTime <$> o A..: "validityUpperBound"
@@ -160,7 +160,7 @@ instance A.FromJSON (MarloweRequest 'V1) where
                          reqChange <- fromString <$> o A..: "change"
                          pure Apply{..}
             "withdraw" -> do
-                            reqContractId <- fromString <$> o A..: "id"
+                            reqContractId <- fromString <$> o A..: "contractId"
                             reqRole <- fromString <$> o A..: "role"
                             reqAddresses <- fmap fromString <$> o A..: "addresses"
                             reqChange <- fromString <$> o A..: "change"
@@ -173,17 +173,17 @@ instance A.ToJSON (MarloweRequest 'V1) where
   toJSON Follow{..} =
     A.object
       [ "request" A..=  ("follow" :: String)
-      , "ids" A..= fmap renderContractId reqContractIds
+      , "contractId" A..= renderContractId reqContractId
       ]
   toJSON Unfollow{..} =
     A.object
       [ "request" A..=  ("unfollow" :: String)
-      , "ids" A..= fmap renderContractId reqContractIds
+      , "contractId" A..= renderContractId reqContractId
       ]
   toJSON Get{..} =
     A.object
       [ "request" A..= ("get" :: String)
-      , "id" A..= renderContractId reqContractId
+      , "contractId" A..= renderContractId reqContractId
       ]
   toJSON Create{..} =
     A.object
@@ -216,8 +216,11 @@ data MarloweResponse v =
     Contracts
     { resContractIds :: [ContractId]
     }
+  | FollowResult
+    { resResult :: Bool
+    }
   | Info
-    { resContractId :: ContractId
+    { resCreation :: CreateStep v
     , resSteps :: [ContractStep v]
     }
   | Body
@@ -232,37 +235,56 @@ instance A.FromJSON (MarloweResponse 'V1) where
         (o A..: "response" :: A.Parser String)
           >>= \case
             "contracts" -> do
-                             resContractIds <- fmap fromString <$> o A..: "ids"
+                             resContractIds <- fmap fromString <$> o A..: "contractIds"
                              pure Contracts{..}
+            "result" -> do
+                          resResult <- o A..: "result"
+                          pure FollowResult{..}
             "info" -> do
-                        resContractId <- fromString <$> o A..: "id"
+                        resCreation <- contractCreationFromJSON =<< o A..: "creation"
                         resSteps <- mapM contractStepFromJSON =<< o A..: "steps"
                         pure Info{..}
             "body" -> do
-                        resTransactionId <- fromString <$> o A..: "id"
+                        resTransactionId <- fromString <$> o A..: "contractId"
                         resTransactionBody <- o A..: "body"
                         pure Body{..}
             response -> fail $ "Invalid response: " <> response <> "."
-
 
 instance A.ToJSON (MarloweResponse 'V1) where
   toJSON Contracts{..} =
     A.object
       [ "response" A..= ("contracts" :: String)
-      , "ids" A..= fmap renderContractId resContractIds
+      , "contractIds" A..= fmap renderContractId resContractIds
+      ]
+  toJSON FollowResult{..} =
+    A.object
+      [ "response" A..= ("result" :: String)
+      , "result" A..= resResult
       ]
   toJSON Info{..} =
     A.object
       [ "response" A..= ("info" :: String)
-      , "id" A..= renderContractId resContractId
+      , "creation" A..= contractCreationToJSON resCreation
       , "steps" A..= fmap contractStepToJSON resSteps
       ]
   toJSON Body{..} =
     A.object
       [ "response" A..= ("body" :: String)
-      , "id" A..= resTransactionId
+      , "contractId" A..= resTransactionId
       , "body" A..= resTransactionBody
       ]
+
+
+contractCreationFromJSON :: A.Value ->  A.Parser (CreateStep 'V1)
+contractCreationFromJSON _ = error "Not implemented"  -- FIXME
+
+
+contractCreationToJSON :: CreateStep 'V1-> A.Value
+contractCreationToJSON CreateStep{..} =
+  A.object
+    [ "output" A..= transactionScriptOutputToJSON createOutput
+    , "payoutValidatorHash" A..= BS8.unpack (unScriptHash payoutValidatorHash)
+    ]
 
 
 contractStepFromJSON :: A.Value ->  A.Parser (ContractStep 'V1)
@@ -270,11 +292,38 @@ contractStepFromJSON _ = error "Not implemented"  -- FIXME
 
 
 contractStepToJSON :: ContractStep 'V1-> A.Value
-contractStepToJSON (ApplyTransaction Transaction{}) =
+contractStepToJSON (ApplyTransaction Transaction{..}) =
   A.object
     [ "step" A..= ("apply" :: String)
+    , "txId" A..= transactionId
+    , "contractId" A..= renderContractId contractId
+    , "redeemer" A..= redeemer
+    , "scriptOutput" A..= fmap transactionScriptOutputToJSON (scriptOutput output)
+    , "payouts" A..= M.map payoutToJSON (payouts output)
     ]
-contractStepToJSON (RedeemPayout RedeemStep{}) =
+contractStepToJSON (RedeemPayout RedeemStep{..}) =
   A.object
     [ "step" A..= ("payout" :: String)
+    , "utxo" A..= utxo
+    , "redeemingTx" A..= redeemingTx
+    , "datumm" A..= datum
+    ]
+
+
+transactionScriptOutputToJSON :: TransactionScriptOutput 'V1 -> A.Value
+transactionScriptOutputToJSON TransactionScriptOutput{..} =
+  A.object
+    [ "address" A..= address
+    , "assets" A..= assets
+    , "utxo" A..= utxo
+    , "datum" A..= datum
+    ]
+
+
+payoutToJSON :: Payout 'V1 -> A.Value
+payoutToJSON Payout{..} =
+  A.object
+    [ "address" A..= address
+    , "assets" A..= assets
+    , "datum" A..= datum
     ]

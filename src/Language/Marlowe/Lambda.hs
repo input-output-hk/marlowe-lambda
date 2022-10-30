@@ -1,6 +1,8 @@
 
 
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 
@@ -12,31 +14,35 @@ module Language.Marlowe.Lambda (
 
 import Aws.Lambda (Context(Context, customContext))
 import Control.Exception (SomeException, catch)
-import Data.Aeson
 import Data.IORef (readIORef)
-import Language.Marlowe.Runtime.Core.Api (renderContractId)
+import Language.Marlowe.Runtime.Core.Api (MarloweVersionTag(V1))
 import Language.Marlowe.Lambda.Client (runLambdaWithConfig)
-import Language.Marlowe.Lambda.List (listContracts)
-import Language.Marlowe.Lambda.Types (Config)
-
-import qualified Data.Text as T (pack)
-import qualified Data.Vector as V (fromList)
+import Language.Marlowe.Lambda.List (allContracts, followContract, followedContracts, getContract, unfollowContract)
+import Language.Marlowe.Lambda.Types (Config, MarloweRequest(..), MarloweResponse(..))
 
 
-handle :: Value
+handle :: MarloweRequest 'V1
        -> Config
-       -> IO (Either Value Value)
-handle _ config =
+       -> IO (Either String (MarloweResponse 'V1))
+handle request config =
   let
-    format = Array . V.fromList . fmap (String . renderContractId )
+    run =
+      case request of
+        List -> Right . Contracts <$> allContracts
+        Followed -> Right . Contracts <$> followedContracts
+        Follow{..} -> fmap FollowResult <$> followContract reqContractId
+        Unfollow{..} -> fmap FollowResult <$> unfollowContract reqContractId
+        Get{..} -> fmap (uncurry Info) <$> getContract reqContractId
+        _ -> error "Not implemented."
+      
   in
-    (fmap format . Right <$> runLambdaWithConfig config listContracts)
-       `catch` \(err :: SomeException) -> pure $ Left $ String $ T.pack $ show err
+    runLambdaWithConfig config run
+       `catch` \(err :: SomeException) -> pure . Left $ show err
 
 
-handler :: Value
+handler :: MarloweRequest 'V1
         -> Context Config
-        -> IO (Either Value Value)
+        -> IO (Either String (MarloweResponse 'V1))
 handler input Context{customContext} =
   do
     config <- readIORef customContext

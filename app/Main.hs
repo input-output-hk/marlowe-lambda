@@ -9,11 +9,14 @@ module Main (
 
 
 import Aws.Lambda (addStandaloneLambdaHandler, defaultDispatcherOptions, runLambdaHaskellRuntime)
-import Data.Default (def)
 import Language.Marlowe.Lambda (handler)
+import System.Environment (getArgs)
 
 
 main :: IO ()
 main =
-  runLambdaHaskellRuntime defaultDispatcherOptions def id
-    $ addStandaloneLambdaHandler "marlowe" handler
+  do
+    [configFile] <- getArgs
+    config <- read <$> readFile configFile
+    runLambdaHaskellRuntime defaultDispatcherOptions (pure config) id
+      $ addStandaloneLambdaHandler "marlowe" handler

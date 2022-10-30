@@ -1,5 +1,8 @@
 
 
+{-# LANGUAGE LambdaCase #-}
+
+
 module Main (
   main
 ) where
@@ -8,6 +11,7 @@ module Main (
 import Data.Aeson (eitherDecode, encode)
 import Data.Default (def)
 import Language.Marlowe.Lambda (handle)
+import System.Environment (getArgs)
 import System.Exit (die)
 
 import qualified Data.ByteString.Lazy.Char8 as LBS8 (getContents, putStrLn, unpack)
@@ -16,11 +20,16 @@ import qualified Data.ByteString.Lazy.Char8 as LBS8 (getContents, putStrLn, unpa
 main :: IO ()
 main =
    do
-     input' <- eitherDecode <$> LBS8.getContents
-     case input' of
-       Left msg    -> die msg
-       Right input -> do
-                        result <- handle input def
-                        case result of
-                          Right msg -> LBS8.putStrLn $ encode msg
-                          Left  msg -> die . LBS8.unpack $ encode msg
+     config <-
+       getArgs >>= \case
+         []     -> pure def
+         [file] -> read <$> readFile file
+         _      -> die "Invalid argument."
+     LBS8.getContents
+       >>= (
+         \case
+           Left msg    -> die msg
+           Right input -> handle input config >>= \case
+                            Right msg -> LBS8.putStrLn $ encode msg
+                            Left  msg -> die . LBS8.unpack $ encode msg
+       ) . eitherDecode

@@ -11,8 +11,6 @@
 
 module Language.Marlowe.Lambda.Client (
   Config(..)
-, localConfig
-, awsConfig
 , Services(..)
 , Lambda(..)
 , runQueryClient
@@ -56,9 +54,10 @@ data Config =
   , txHost :: HostName
   , txCommandPort :: PortNumber
   }
+    deriving (Read, Show)
 
 instance Default Config where
-  def = awsConfig
+  def = localConfig
 
 
 localConfig :: Config
@@ -72,20 +71,6 @@ localConfig =
   , discoveryQueryPort = 3721
   , txHost = "127.0.0.1"
   , txCommandPort = 3723
-  }
-
-
-awsConfig :: Config
-awsConfig =
-  Config
-  { historyHost = "54.202.238.5"
-  , historyCommandPort = 23717
-  , historyQueryPort = 23718
-  , historySyncPort = 23719
-  , discoveryHost = "54.202.238.5"
-  , discoveryQueryPort = 23721
-  , txHost = "54.202.238.5"
-  , txCommandPort = 23723
   }
 
 

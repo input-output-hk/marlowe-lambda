@@ -4,4 +4,4 @@ cd "${0%/*}"
 
 export LD_LIBRARY_PATH=$LAMBDA_TASK_ROOT:$LD_LIBRARY_PATH
 
-exec -a "$0" "./marlowe-lambda" "$@"
+exec -a "$0" "./marlowe-lambda" preview.config "$@"

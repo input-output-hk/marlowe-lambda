@@ -6,7 +6,8 @@ module Language.Marlowe.Lambda.List (
 
 
 import Data.Void (absurd)
-import Language.Marlowe.Lambda.Client (Lambda, Services(..), runQueryClient)
+import Language.Marlowe.Lambda.Client (runQueryClient)
+import Language.Marlowe.Lambda.Types (Lambda, Services(..))
 import Language.Marlowe.Runtime.Core.Api (ContractId)
 import Language.Marlowe.Runtime.History.Api (HistoryQuery(..))
 import Network.Protocol.Query.Client (ClientStInit(SendMsgRequest), ClientStNext(ClientStNext), ClientStNextCanReject(ClientStNextCanReject, recvMsgReject, recvMsgNextPage), ClientStPage(SendMsgRequestNext, SendMsgDone), QueryClient(QueryClient))

@@ -14,6 +14,7 @@ library
   exposed-modules   : Language.Marlowe.Lambda
                       Language.Marlowe.Lambda.Client
                       Language.Marlowe.Lambda.List
+                      Language.Marlowe.Lambda.Types
   hs-source-dirs    : src
   build-depends     : base >= 4.9 && < 5
                     , aeson
@@ -21,6 +22,8 @@ library
                     , bytestring
                     , containers
                     , data-default
+                    , marlowe
+                    , marlowe-chain-sync
                     , marlowe-protocols
                     , marlowe-runtime
                     , monad-control

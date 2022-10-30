@@ -15,8 +15,9 @@ import Control.Exception (SomeException, catch)
 import Data.Aeson
 import Data.IORef (readIORef)
 import Language.Marlowe.Runtime.Core.Api (renderContractId)
-import Language.Marlowe.Lambda.Client (Config, runLambdaWithConfig)
+import Language.Marlowe.Lambda.Client (runLambdaWithConfig)
 import Language.Marlowe.Lambda.List (listContracts)
+import Language.Marlowe.Lambda.Types (Config)
 
 import qualified Data.Text as T (pack)
 import qualified Data.Vector as V (fromList)

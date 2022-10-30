@@ -50,6 +50,7 @@ executable marlowe-lambda
                       -Wredundant-constraints
                       -Widentities
                       -Wunused-packages
+                      -O2
   default-language  : Haskell2010
 
 executable marlowe-lambda-cli

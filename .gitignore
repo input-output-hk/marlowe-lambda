@@ -3,3 +3,6 @@ tmp/
 *.log
 *.sw?
 dist-newstyle/
+deploy/lib/
+deploy/marlowe-lambda
+marlowe-lambda.zip

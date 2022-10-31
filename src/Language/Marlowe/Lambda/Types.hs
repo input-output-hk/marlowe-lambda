@@ -46,7 +46,7 @@ import Network.Socket (HostName, PortNumber)
 import qualified Data.Aeson.Types as A (FromJSON(parseJSON), Parser, ToJSON(toJSON), Value, (.=), (.:), object, withObject)
 import qualified Data.ByteString.Char8 as BS8 (unpack)
 import qualified Data.Map.Strict as M (Map, map, mapKeys)
-import qualified Cardano.Api as C (AsType(AsBabbageEra, AsTxBody), BabbageEra, TextEnvelope, TxBody, deserialiseFromTextEnvelope, getTxId, serialiseToTextEnvelope)
+import qualified Cardano.Api as C (BabbageEra, TxBody, getTxId, serialiseToTextEnvelope)
 
 
 data Config =
@@ -239,6 +239,7 @@ data MarloweResponse v =
     , resTransactionBody :: C.TxBody C.BabbageEra
     }
 
+{-
 instance A.FromJSON (MarloweResponse 'V1) where
   parseJSON =
     A.withObject "MarloweResponse"
@@ -253,6 +254,7 @@ instance A.FromJSON (MarloweResponse 'V1) where
                         pure Info{..}
             "body" -> fmap mkBody <$> txBodyFromJSON =<< o A..: "body"
             response -> fail $ "Invalid response: " <> response <> "."
+-}
 
 instance A.ToJSON (MarloweResponse 'V1) where
   toJSON Contracts{..} =
@@ -279,8 +281,10 @@ instance A.ToJSON (MarloweResponse 'V1) where
       ]
 
 
+{-
 contractCreationFromJSON :: A.Value ->  A.Parser (CreateStep 'V1)
-contractCreationFromJSON _ = error "Not implemented"  -- FIXME
+contractCreationFromJSON _ = error "Not implemented"
+-}
 
 
 contractCreationToJSON :: CreateStep 'V1-> A.Value
@@ -291,8 +295,10 @@ contractCreationToJSON CreateStep{..} =
     ]
 
 
+{-
 contractStepFromJSON :: A.Value ->  A.Parser (ContractStep 'V1)
-contractStepFromJSON _ = error "Not implemented"  -- FIXME
+contractStepFromJSON _ = error "Not implemented"
+-}
 
 
 contractStepToJSON :: ContractStep 'V1-> A.Value
@@ -333,12 +339,15 @@ payoutToJSON Payout{..} =
     ]
 
 
+{-
 txBodyFromJSON :: C.TextEnvelope -> A.Parser (C.TxBody C.BabbageEra)
 txBodyFromJSON envelope =
   do
     case C.deserialiseFromTextEnvelope (C.AsTxBody C.AsBabbageEra) envelope of
       Left msg -> fail $ show msg
       Right body -> pure body
+-}
+
 
 txBodyToJSON :: C.TxBody C.BabbageEra -> A.Value
 txBodyToJSON body =

@@ -41,7 +41,7 @@ buildCreation
   -> [Address]
   -> Address
   -> [TxOutRef]
-  -> Lambda (Either String (C.TxBody C.BabbageEra))
+  -> Lambda (Either String (ContractId, C.TxBody C.BabbageEra))
 buildCreation version contract roles minUtxo =
   let
     roles' =
@@ -49,7 +49,7 @@ buildCreation version contract roles minUtxo =
         then Nothing
         else Just . Right . mkMint . fmap (second (, Left 1)) . NE.fromList . M.toList $ roles
   in 
-    build show snd $ \w -> Create Nothing version w roles' mempty minUtxo contract
+    build show id $ \w -> Create Nothing version w roles' mempty minUtxo contract
 
 
 buildApplication
@@ -62,9 +62,9 @@ buildApplication
   -> [Address]
   -> Address
   -> [TxOutRef]
-  -> Lambda (Either String (C.TxBody C.BabbageEra))
+  -> Lambda (Either String (ContractId, C.TxBody C.BabbageEra))
 buildApplication version contractId' redeemer lower upper =
-  build show id $ \w -> ApplyInputs version w contractId' (utcTime lower) (utcTime upper) redeemer
+  build show (contractId', ) $ \w -> ApplyInputs version w contractId' (utcTime lower) (utcTime upper) redeemer
 
 
 buildWithdrawal
@@ -75,19 +75,19 @@ buildWithdrawal
   -> [Address]
   -> Address
   -> [TxOutRef]
-  -> Lambda (Either String (C.TxBody C.BabbageEra))
+  -> Lambda (Either String (ContractId, C.TxBody C.BabbageEra))
 buildWithdrawal version contractId' role =
-  build show id $ \w -> Withdraw version w contractId' role
+  build show (contractId',) $ \w -> Withdraw version w contractId' role
 
 
 build
   :: (err -> String)
-  -> (result -> C.TxBody C.BabbageEra)
+  -> (result -> (ContractId, C.TxBody C.BabbageEra))
   -> (WalletAddresses -> MarloweTxCommand Void err result)
   -> [Address]
   -> Address
   -> [TxOutRef]
-  -> Lambda (Either String (C.TxBody C.BabbageEra))
+  -> Lambda (Either String (ContractId, C.TxBody C.BabbageEra))
 build showError getBody command addresses change collaterals =
   do
     let

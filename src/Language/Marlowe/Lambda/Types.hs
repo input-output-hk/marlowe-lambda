@@ -34,7 +34,7 @@ import Data.String (fromString)
 import Language.Marlowe (POSIXTime(..))
 import Language.Marlowe.Protocol.Sync.Client (MarloweSyncClient)
 import Language.Marlowe.Runtime.Cardano.Api (fromCardanoTxId)
-import Language.Marlowe.Runtime.ChainSync.Api (Address, Lovelace(..), ScriptHash(..), TokenName, TxId, TxOutRef)
+import Language.Marlowe.Runtime.ChainSync.Api (Address, Lovelace(..), TokenName, TxId, TxOutRef, fromBech32, toBech32)
 import Language.Marlowe.Runtime.Core.Api (ContractId, IsMarloweVersion(Redeemer, Contract), MarloweVersionTag(V1), Transaction(Transaction, output, redeemer, validityUpperBound, validityLowerBound, blockHeader, contractId, transactionId), TransactionScriptOutput(..), Payout(..), TransactionOutput(scriptOutput, payouts), renderContractId)
 import Language.Marlowe.Runtime.Discovery.Api (DiscoveryQuery)
 import Language.Marlowe.Runtime.History.Api ( CreateStep(..), ContractStep(..), HistoryCommand, HistoryQuery, RedeemStep(RedeemStep, datum, redeemingTx, utxo))
@@ -43,9 +43,9 @@ import Network.Protocol.Job.Client (JobClient)
 import Network.Protocol.Query.Client (QueryClient)
 import Network.Socket (HostName, PortNumber)
 
-import qualified Data.Aeson.Types as A (FromJSON(parseJSON), Parser, ToJSON(toJSON), Value, (.=), (.:), object, withObject)
-import qualified Data.ByteString.Char8 as BS8 (unpack)
+import qualified Data.Aeson.Types as A (FromJSON(parseJSON), Parser, ToJSON(toJSON), Value(String), (.:), (.=), object, parseFail, withObject) -- (FromJSON(parseJSON), Parser, ToJSON(toJSON), Value, (.=), (.:), object, withObject)
 import qualified Data.Map.Strict as M (Map, map, mapKeys)
+import qualified Data.Text as T (Text)
 import qualified Cardano.Api as C (BabbageEra, TxBody, getTxId, serialiseToTextEnvelope)
 
 
@@ -59,6 +59,7 @@ data Config =
   , discoveryQueryPort :: PortNumber
   , txHost :: HostName
   , txCommandPort :: PortNumber
+  , verbose :: Bool
   }
     deriving (Read, Show)
 
@@ -73,6 +74,7 @@ instance Default Config where
     , discoveryQueryPort = 3721
     , txHost = "127.0.0.1"
     , txCommandPort = 3723
+    , verbose = False
     }
 
 
@@ -111,6 +113,8 @@ data MarloweRequest v =
     { reqContract :: Contract v
     , reqRoles :: M.Map TokenName Address
     , reqMinUtxo :: Lovelace
+    -- TODO: Add staking.
+    -- TODO: Add metadata.
     , reqAddresses :: [Address]
     , reqChange :: Address
     , reqCollateral :: [TxOutRef]
@@ -120,6 +124,7 @@ data MarloweRequest v =
     , reqInputs :: Redeemer v
     , reqValidityLowerBound :: POSIXTime
     , reqValidityUpperBound :: POSIXTime
+    -- TODO: Add metadata.
     , reqAddresses :: [Address]
     , reqChange :: Address
     , reqCollateral :: [TxOutRef]
@@ -127,10 +132,12 @@ data MarloweRequest v =
   | Withdraw
     { reqContractId :: ContractId
     , reqRole :: TokenName
+    -- TODO: Add metadata.
     , reqAddresses :: [Address]
     , reqChange :: Address
     , reqCollateral :: [TxOutRef]
     }
+
 
 instance A.FromJSON (MarloweRequest 'V1) where
   parseJSON =
@@ -152,9 +159,9 @@ instance A.FromJSON (MarloweRequest 'V1) where
             "create" -> do
                           reqContract <- o A..: "contract"
                           reqRoles <- M.mapKeys fromString . M.map fromString <$> (o A..: "roles" :: A.Parser (M.Map String String))
-                          reqMinUtxo <- Lovelace <$> o A..: "minUtxO"
-                          reqAddresses <- fmap fromString <$> o A..: "addresses"
-                          reqChange <- fromString <$> o A..: "change"
+                          reqMinUtxo <- Lovelace <$> o A..: "minUtxo"
+                          reqAddresses <- mapM addressFromJSON =<< o A..: "addresses"
+                          reqChange <- addressFromJSON =<< o A..: "change"
                           reqCollateral <- fmap fromString <$> o A..: "collateral"
                           pure Create{..}
             "apply" -> do
@@ -162,15 +169,15 @@ instance A.FromJSON (MarloweRequest 'V1) where
                          reqInputs <- o A..: "inputs"
                          reqValidityLowerBound <- POSIXTime <$> o A..: "validityLowerBound"
                          reqValidityUpperBound <- POSIXTime <$> o A..: "validityUpperBound"
-                         reqAddresses <- fmap fromString <$> o A..: "addresses"
-                         reqChange <- fromString <$> o A..: "change"
+                         reqAddresses <- mapM addressFromJSON =<< o A..: "addresses"
+                         reqChange <- addressFromJSON =<< o A..: "change"
                          reqCollateral <- fmap fromString <$> o A..: "collateral"
                          pure Apply{..}
             "withdraw" -> do
                             reqContractId <- fromString <$> o A..: "contractId"
                             reqRole <- fromString <$> o A..: "role"
-                            reqAddresses <- fmap fromString <$> o A..: "addresses"
-                            reqChange <- fromString <$> o A..: "change"
+                            reqAddresses <- mapM addressFromJSON =<< o A..: "addresses"
+                            reqChange <- addressFromJSON =<< o A..: "change"
                             reqCollateral <- fmap fromString <$> o A..: "collateral"
                             pure Withdraw{..}
             request -> fail $ "Invalid request: " <> request <> "."
@@ -199,8 +206,8 @@ instance A.ToJSON (MarloweRequest 'V1) where
       , "contract" A..= reqContract
       , "minUtxo" A..= unLovelace reqMinUtxo
       , "roles" A..= M.mapKeys show reqRoles
-      , "addresses" A..= reqAddresses
-      , "change" A..= reqChange
+      , "addresses" A..= fmap addressToJSON reqAddresses
+      , "change" A..= addressToJSON reqChange
       , "collateral" A..= reqCollateral
       ] 
   toJSON Apply{..} =
@@ -209,16 +216,16 @@ instance A.ToJSON (MarloweRequest 'V1) where
       , "inputs" A..= reqInputs
       , "validityLowerBound" A..= getPOSIXTime reqValidityLowerBound
       , "validityUpperBound" A..= getPOSIXTime reqValidityUpperBound
-      , "addresses" A..= reqAddresses
-      , "change" A..= reqChange
+      , "addresses" A..= fmap addressToJSON reqAddresses
+      , "change" A..= addressToJSON reqChange
       , "collateral" A..= reqCollateral
       ] 
   toJSON Withdraw{..} =
     A.object
       [ "request" A..= ("withdraw" :: String)
       , "role" A..= reqRole
-      , "addresses" A..= reqAddresses
-      , "change" A..= reqChange
+      , "addresses" A..= fmap addressToJSON reqAddresses
+      , "change" A..= addressToJSON reqChange
       , "collateral" A..= reqCollateral
       ]
 
@@ -235,7 +242,8 @@ data MarloweResponse v =
     , resSteps :: [ContractStep v]
     }
   | Body
-    { resTransactionId :: TxId
+    { resContractId :: ContractId
+    , resTransactionId :: TxId
     , resTransactionBody :: C.TxBody C.BabbageEra
     }
 
@@ -276,6 +284,7 @@ instance A.ToJSON (MarloweResponse 'V1) where
   toJSON Body{..} =
     A.object
       [ "response" A..= ("body" :: String)
+      , "contractId" A..= renderContractId resContractId
       , "txId" A..= C.getTxId resTransactionBody
       , "body" A..= txBodyToJSON resTransactionBody
       ]
@@ -291,7 +300,7 @@ contractCreationToJSON :: CreateStep 'V1-> A.Value
 contractCreationToJSON CreateStep{..} =
   A.object
     [ "output" A..= transactionScriptOutputToJSON createOutput
-    , "payoutValidatorHash" A..= BS8.unpack (unScriptHash payoutValidatorHash)
+    , "payoutValidatorHash" A..= filter (/= '"') (show payoutValidatorHash)
     ]
 
 
@@ -357,9 +366,17 @@ txBodyToJSON body =
     A.toJSON envelope
 
 
-mkBody :: C.TxBody C.BabbageEra -> MarloweResponse v
-mkBody resTransactionBody =
+mkBody :: ContractId -> C.TxBody C.BabbageEra -> MarloweResponse v
+mkBody resContractId resTransactionBody =
   let
     resTransactionId = fromCardanoTxId $ C.getTxId resTransactionBody
   in
     Body{..}
+
+
+addressFromJSON :: T.Text -> A.Parser Address
+addressFromJSON = maybe (A.parseFail "Failed decoding Bech32 address.") pure . fromBech32
+
+
+addressToJSON :: Address -> A.Value
+addressToJSON = maybe (error "Failed encoding Bech32 address.") A.String . toBech32

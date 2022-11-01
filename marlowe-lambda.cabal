@@ -35,7 +35,6 @@ library
                     , transformers
                     , transformers-base
                     , typed-protocols
-                    , vector
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
                       -Wincomplete-uni-patterns

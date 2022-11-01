@@ -1,5 +1,4 @@
 index-state: 2022-04-11T18:57:22Z
--- index-state: 2022-10-29T01:37:02Z
 
 packages: .
 
@@ -30,8 +29,8 @@ source-repository-package
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/marlowe-cardano.git
-  tag: 84c09c4626037ddca4e7e3a60a6258542122d023
-  --sha256: 0csc2b1zjclgfz20j7blwndq8i9yma4k28bf2k591jawggpzzpp4
+  tag: b1b5d77e3fc78caa9fd67106e49c97ebc49438ec
+  --sha256: 1lc4rlvvxm2p9xsn676bkk6vaw54i3y7wpdyqd9zhdmhsgxa84n8
   subdir:
     marlowe
     marlowe-actus

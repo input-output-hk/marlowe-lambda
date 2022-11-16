@@ -34,7 +34,7 @@ import Data.String (fromString)
 import Language.Marlowe (POSIXTime(..))
 import Language.Marlowe.Protocol.Sync.Client (MarloweSyncClient)
 import Language.Marlowe.Runtime.Cardano.Api (fromCardanoTxId)
-import Language.Marlowe.Runtime.ChainSync.Api (Address, Lovelace(..), TokenName, TxId, TxOutRef, fromBech32, toBech32)
+import Language.Marlowe.Runtime.ChainSync.Api (Address, ChainSyncCommand, Lovelace(..), TokenName, TxId, TxOutRef, fromBech32, toBech32)
 import Language.Marlowe.Runtime.Core.Api (ContractId, IsMarloweVersion(Redeemer, Contract), MarloweVersionTag(V1), Transaction(Transaction, output, redeemer, validityUpperBound, validityLowerBound, blockHeader, contractId, transactionId), TransactionScriptOutput(..), Payout(..), TransactionOutput(scriptOutput, payouts), renderContractId)
 import Language.Marlowe.Runtime.Discovery.Api (DiscoveryQuery)
 import Language.Marlowe.Runtime.History.Api ( CreateStep(..), ContractStep(..), HistoryCommand, HistoryQuery, RedeemStep(RedeemStep, datum, redeemingTx, utxo))
@@ -51,7 +51,9 @@ import qualified Cardano.Api as C (AsType(AsBabbageEra, AsPaymentExtendedKey, As
 
 data Config =
   Config
-  { historyHost :: HostName
+  { chainSeekHost :: HostName
+  , chainSeekCommandPort :: PortNumber
+  , historyHost :: HostName
   , historyCommandPort :: PortNumber
   , historyQueryPort :: PortNumber
   , historySyncPort :: PortNumber
@@ -66,7 +68,9 @@ data Config =
 instance Default Config where
   def =
     Config
-    { historyHost = "127.0.0.1"
+    { chainSeekHost = "127.0.0.1"
+    , chainSeekCommandPort = 3720
+    , historyHost = "127.0.0.1"
     , historyCommandPort = 3717
     , historyQueryPort = 3718
     , historySyncPort = 3719
@@ -80,7 +84,8 @@ instance Default Config where
 
 data Services m =
   Services
-  { runHistoryJobClient :: RunClient m (JobClient HistoryCommand)
+  { runSyncCommandClient :: RunClient m (JobClient ChainSyncCommand)
+  , runHistoryJobClient :: RunClient m (JobClient HistoryCommand)
   , runHistoryQueryClient :: RunClient m (QueryClient HistoryQuery)
   , runHistorySyncClient :: RunClient m MarloweSyncClient
   , runDiscoveryQueryClient :: RunClient m (QueryClient DiscoveryQuery)

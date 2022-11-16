@@ -21,6 +21,7 @@ import Language.Marlowe.Lambda.Build (buildApplication, buildCreation, buildWith
 import Language.Marlowe.Lambda.Client (runLambdaWithConfig)
 import Language.Marlowe.Lambda.List (allContracts, followContract, followedContracts, getContract, unfollowContract)
 import Language.Marlowe.Lambda.Sign (sign)
+import Language.Marlowe.Lambda.Submit (submit)
 import Language.Marlowe.Lambda.Types (Config (verbose), MarloweRequest(..), MarloweResponse(..), mkBody)
 import Language.Marlowe.Runtime.Core.Api (MarloweVersion(MarloweV1), MarloweVersionTag(V1))
 import System.IO (stderr)
@@ -46,7 +47,7 @@ handle request config =
           Apply{..} -> second (uncurry mkBody) <$> buildApplication MarloweV1 reqContractId reqInputs reqValidityLowerBound reqValidityUpperBound reqAddresses reqChange reqCollateral
           Withdraw{..} -> second (uncurry mkBody) <$> buildWithdrawal MarloweV1 reqContractId reqRole reqAddresses reqChange reqCollateral
           Sign{..} -> pure . Right . uncurry Tx $ sign reqTransactionBody reqPaymentKeys reqPaymentExtendedKeys
-          Submit{} -> pure $ Left "Unsupported operation."
+          Submit{..} -> second TxId <$> submit reqTransaction
     when (verbose config)
       $ LBS8.hPutStrLn stderr $ A.encode request
     runLambdaWithConfig config run

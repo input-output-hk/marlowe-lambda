@@ -46,7 +46,7 @@ import Network.Socket (HostName, PortNumber)
 import qualified Data.Aeson.Types as A (FromJSON(parseJSON), Parser, ToJSON(toJSON), Value(String), (.:), (.=), object, parseFail, withObject) -- (FromJSON(parseJSON), Parser, ToJSON(toJSON), Value, (.=), (.:), object, withObject)
 import qualified Data.Map.Strict as M (Map, map, mapKeys)
 import qualified Data.Text as T (Text)
-import qualified Cardano.Api as C (BabbageEra, TxBody, getTxId, serialiseToTextEnvelope)
+import qualified Cardano.Api as C (AsType(AsBabbageEra, AsPaymentExtendedKey, AsPaymentKey, AsSigningKey, AsTxBody), BabbageEra, HasTextEnvelope, PaymentKey, PaymentExtendedKey, SigningKey, TextEnvelope, Tx, TxBody, deserialiseFromTextEnvelope, getTxId, serialiseToTextEnvelope)
 
 
 data Config =
@@ -137,6 +137,14 @@ data MarloweRequest v =
     , reqChange :: Address
     , reqCollateral :: [TxOutRef]
     }
+  | Sign
+    { reqTransactionBody :: C.TxBody C.BabbageEra
+    , reqPaymentKeys :: [C.SigningKey C.PaymentKey]
+    , reqPaymentExtendedKeys :: [C.SigningKey C.PaymentExtendedKey]
+    }
+  | Submit
+    { reqTransaction :: C.Tx C.BabbageEra
+    }
 
 
 instance A.FromJSON (MarloweRequest 'V1) where
@@ -180,6 +188,16 @@ instance A.FromJSON (MarloweRequest 'V1) where
                             reqChange <- addressFromJSON =<< o A..: "change"
                             reqCollateral <- fmap fromString <$> o A..: "collateral"
                             pure Withdraw{..}
+            "sign" -> do
+                        reqTransactionBody <- textEnvelopeFromJSON (C.AsTxBody C.AsBabbageEra) =<< o A..: "body"
+                        reqPaymentKeys <- mapM (textEnvelopeFromJSON $ C.AsSigningKey C.AsPaymentKey) =<< o A..: "paymentKeys"
+                        reqPaymentExtendedKeys <- mapM (textEnvelopeFromJSON $ C.AsSigningKey C.AsPaymentExtendedKey) =<< o A..: "paymentExtendedKeys"
+                        pure Sign{..}
+            "submit" -> do
+                        reqTransactionBody <- undefined
+                        reqPaymentKeys <- undefined
+                        reqPaymentExtendedKeys <- undefined
+                        pure Sign{..}
             request -> fail $ "Invalid request: " <> request <> "."
 
 instance A.ToJSON (MarloweRequest 'V1) where
@@ -228,6 +246,18 @@ instance A.ToJSON (MarloweRequest 'V1) where
       , "change" A..= addressToJSON reqChange
       , "collateral" A..= reqCollateral
       ]
+  toJSON Sign{..} =
+    A.object
+      [ "request" A..= ("sign" :: String)
+      , "body" A..= textEnvelopeToJSON reqTransactionBody
+      , "paymentKeys" A..= fmap textEnvelopeToJSON reqPaymentKeys
+      , "paymentExtendedKeys" A..= fmap textEnvelopeToJSON reqPaymentExtendedKeys
+      ]
+  toJSON Submit{..} =
+    A.object
+      [ "request" A..= ("submit" :: String)
+      , "tx" A..= textEnvelopeToJSON reqTransaction
+      ]
 
 
 data MarloweResponse v =
@@ -246,23 +276,14 @@ data MarloweResponse v =
     , resTransactionId :: TxId
     , resTransactionBody :: C.TxBody C.BabbageEra
     }
-
-{-
-instance A.FromJSON (MarloweResponse 'V1) where
-  parseJSON =
-    A.withObject "MarloweResponse"
-      $ \o ->
-        (o A..: "response" :: A.Parser String)
-          >>= \case
-            "contracts" -> Contracts . fmap fromString <$> o A..: "contractIds"
-            "result" -> FollowResult <$> o A..: "result"
-            "info" -> do
-                        resCreation <- contractCreationFromJSON =<< o A..: "creation"
-                        resSteps <- mapM contractStepFromJSON =<< o A..: "steps"
-                        pure Info{..}
-            "body" -> fmap mkBody <$> txBodyFromJSON =<< o A..: "body"
-            response -> fail $ "Invalid response: " <> response <> "."
--}
+  | Tx
+    { resTransactionId :: TxId
+    , resTransaction :: C.Tx C.BabbageEra
+    }
+  | TxId
+    { resTransactionId :: TxId
+    }
+     
 
 instance A.ToJSON (MarloweResponse 'V1) where
   toJSON Contracts{..} =
@@ -286,14 +307,19 @@ instance A.ToJSON (MarloweResponse 'V1) where
       [ "response" A..= ("body" :: String)
       , "contractId" A..= renderContractId resContractId
       , "txId" A..= C.getTxId resTransactionBody
-      , "body" A..= txBodyToJSON resTransactionBody
+      , "body" A..= textEnvelopeToJSON resTransactionBody
       ]
-
-
-{-
-contractCreationFromJSON :: A.Value ->  A.Parser (CreateStep 'V1)
-contractCreationFromJSON _ = error "Not implemented"
--}
+  toJSON Tx{..} =
+    A.object
+      [ "response" A..= ("tx" :: String)
+      , "txId" A..= resTransactionId
+      , "transaction" A..= textEnvelopeToJSON resTransaction
+      ]
+  toJSON TxId{..} =
+    A.object
+      [ "response" A..= ("txId" :: String)
+      , "txId" A..= resTransactionId
+      ]
 
 
 contractCreationToJSON :: CreateStep 'V1-> A.Value
@@ -302,12 +328,6 @@ contractCreationToJSON CreateStep{..} =
     [ "output" A..= transactionScriptOutputToJSON createOutput
     , "payoutValidatorHash" A..= filter (/= '"') (show payoutValidatorHash)
     ]
-
-
-{-
-contractStepFromJSON :: A.Value ->  A.Parser (ContractStep 'V1)
-contractStepFromJSON _ = error "Not implemented"
--}
 
 
 contractStepToJSON :: ContractStep 'V1-> A.Value
@@ -348,20 +368,18 @@ payoutToJSON Payout{..} =
     ]
 
 
-{-
-txBodyFromJSON :: C.TextEnvelope -> A.Parser (C.TxBody C.BabbageEra)
-txBodyFromJSON envelope =
+textEnvelopeFromJSON :: C.HasTextEnvelope a => C.AsType a -> C.TextEnvelope -> A.Parser a
+textEnvelopeFromJSON asType envelope =
   do
-    case C.deserialiseFromTextEnvelope (C.AsTxBody C.AsBabbageEra) envelope of
+    case C.deserialiseFromTextEnvelope asType envelope of
       Left msg -> fail $ show msg
       Right body -> pure body
--}
 
 
-txBodyToJSON :: C.TxBody C.BabbageEra -> A.Value
-txBodyToJSON body =
+textEnvelopeToJSON :: C.HasTextEnvelope a => a -> A.Value
+textEnvelopeToJSON x = 
   let
-    envelope = C.serialiseToTextEnvelope Nothing body
+    envelope = C.serialiseToTextEnvelope Nothing x
   in
     A.toJSON envelope
 

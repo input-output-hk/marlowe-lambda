@@ -44,6 +44,8 @@ handle request config =
           Create{..} -> second (uncurry mkBody) <$> buildCreation MarloweV1 reqContract reqRoles reqMinUtxo reqAddresses reqChange reqCollateral
           Apply{..} -> second (uncurry mkBody) <$> buildApplication MarloweV1 reqContractId reqInputs reqValidityLowerBound reqValidityUpperBound reqAddresses reqChange reqCollateral
           Withdraw{..} -> second (uncurry mkBody) <$> buildWithdrawal MarloweV1 reqContractId reqRole reqAddresses reqChange reqCollateral
+          Sign{} -> pure $ Left "Unsupported operation."
+          Submit{} -> pure $ Left "Unsupported operation."
     when (verbose config)
       $ LBS8.hPutStrLn stderr $ A.encode request
     runLambdaWithConfig config run

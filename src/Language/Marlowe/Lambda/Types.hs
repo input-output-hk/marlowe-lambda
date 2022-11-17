@@ -46,7 +46,7 @@ import Network.Socket (HostName, PortNumber)
 import qualified Data.Aeson.Types as A (FromJSON(parseJSON), Parser, ToJSON(toJSON), Value(String), (.:), (.=), object, parseFail, withObject) -- (FromJSON(parseJSON), Parser, ToJSON(toJSON), Value, (.=), (.:), object, withObject)
 import qualified Data.Map.Strict as M (Map, map, mapKeys)
 import qualified Data.Text as T (Text)
-import qualified Cardano.Api as C (AsType(AsBabbageEra, AsPaymentExtendedKey, AsPaymentKey, AsSigningKey, AsTxBody), BabbageEra, HasTextEnvelope, PaymentKey, PaymentExtendedKey, SigningKey, TextEnvelope, Tx, TxBody, deserialiseFromTextEnvelope, getTxId, serialiseToTextEnvelope)
+import qualified Cardano.Api as C (AsType(AsBabbageEra, AsPaymentExtendedKey, AsPaymentKey, AsSigningKey, AsTx, AsTxBody), BabbageEra, HasTextEnvelope, PaymentKey, PaymentExtendedKey, SigningKey, TextEnvelope, Tx, TxBody, deserialiseFromTextEnvelope, getTxId, serialiseToTextEnvelope)
 
 
 data Config =
@@ -199,10 +199,8 @@ instance A.FromJSON (MarloweRequest 'V1) where
                         reqPaymentExtendedKeys <- mapM (textEnvelopeFromJSON $ C.AsSigningKey C.AsPaymentExtendedKey) =<< o A..: "paymentExtendedKeys"
                         pure Sign{..}
             "submit" -> do
-                        reqTransactionBody <- undefined
-                        reqPaymentKeys <- undefined
-                        reqPaymentExtendedKeys <- undefined
-                        pure Sign{..}
+                        reqTransaction <- textEnvelopeFromJSON (C.AsTx C.AsBabbageEra) =<< o A..: "tx"
+                        pure Submit{..}
             request -> fail $ "Invalid request: " <> request <> "."
 
 instance A.ToJSON (MarloweRequest 'V1) where
@@ -318,7 +316,7 @@ instance A.ToJSON (MarloweResponse 'V1) where
     A.object
       [ "response" A..= ("tx" :: String)
       , "txId" A..= resTransactionId
-      , "transaction" A..= textEnvelopeToJSON resTransaction
+      , "tx" A..= textEnvelopeToJSON resTransaction
       ]
   toJSON TxId{..} =
     A.object

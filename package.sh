@@ -2,7 +2,9 @@
 
 cabal build exe:marlowe-lambda
 
-cp -p dist-newstyle/build/x86_64-linux/ghc-8.10.7/marlowe-lambda-0.1.0.0/x/marlowe-lambda/noopt/build/marlowe-lambda/marlowe-lambda deploy/marlowe-lambda
+rm deploy/marlowe-lambda marlowe-lambda.zip
+
+cp -p ./dist-newstyle/build/x86_64-linux/ghc-8.10.7/marlowe-lambda-0.1.1.0/x/marlowe-lambda/noopt/build/marlowe-lambda/marlowe-lambda deploy/marlowe-lambda
 
 pushd deploy/
 

@@ -1,0 +1,37 @@
+
+.pre {
+  font-family: monospace;
+  white-space: pre;
+}
+
+
+#uiContainer {
+  display: flex;
+}
+
+#uiPanelLeft {
+  width: 35%;
+  border-width: 2px;
+  border-style: solid;
+  border-color: lightgray;
+  padding: 10px;
+}
+
+#uiPanelRight {
+  flex-grow: 1;
+  padding: 10px;
+}
+
+#uiNetwork {
+  font-style: italic;
+}
+
+
+table {
+  table-layout: auto;
+  width: 100%;
+}
+
+table input {
+  width: 100%;
+}

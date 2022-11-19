@@ -6,9 +6,9 @@
     <script src="src/secrets.js" type="application/javascript"> </script>
     <script src="controller.js" type="application/javascript"> </script>
     <script type="text/javascript" src="node_modules/renderjson/renderjson.js"></script>
-    <title>Marlowe Token Swap</title>
+    <title>Marlowe Token Swap - Counterparty</title>
   </head>
-  <body id="uiBody" onload="Controller.initialize(false)">
+  <body id="uiBody" onload="Controller.initialize(true)">
     <div id="uiContainer">
       <div id="uiPanelLeft">
         <h2>0. Contract Definition</h2>
@@ -18,7 +18,6 @@
           </thead>
           <tbody>
             <tr><td><label for="uiAddressA">Address:</label></td><td style="width:100%"><input id="uiAddressA" type="text"/></td></tr>
-            <tr><td><label for="uiKeyA">Signing&nbsp;key:</label></td><td><input id="uiKeyA" type="password"/></td></tr>
             <tr><td><label for="uiCurrencyA">Currency&nbsp;symbol:</label></td><td><input id="uiCurrencyA" type="text"/></td></tr>
             <tr><td><label for="uiTokenA">Token&nbsp;name:</label></td><td><input id="uiTokenA" type="text"/></td></tr>
             <tr><td><label for="uiAmountA">Amount:</label></td><td><input id="uiAmountA" type="text"/></td></tr>
@@ -37,29 +36,28 @@
         <hr/>
         <h2>1. The Party Creates the Contract</h2>
         <div>
-          <button id="uiCreate" type="button" onclick="Controller.createContract(false)">create contract</button>
           <p>Contract ID: <span id="uiContractId" class="pre"/></p>
           <p>Transaction ID: <span id="uiTxId1" class="pre"/></p>
         </div>
         <hr/>
         <h2>2. The Party Deposits Their Tokens</h2>
         <div>
-          <button id="uiPartyDeposit" type="button" onclick="Controller.partyDeposit(false)">deposit tokens</button>
           <p>Transaction ID: <span id="uiTxId2" class="pre"/></p>
         </div>
         <hr/>
         <h2>3. The Counterparty Deposits Their Tokens</h2>
         <div>
-          <button id="uiCounterpartyDeposit" type="button" onclick="Controller.counterpartyDeposit(false)">deposit tokens</button>
+          <button id="uiCounterpartyDeposit" type="button" onclick="Controller.counterpartyDeposit(true)">deposit tokens</button>
           <p>Transaction ID: <span id="uiTxId3" class="pre"/></p>
         </div>
         <hr/>
         <div>
-          <button id="uiReset" type="button" onclick="Controller.reset(false)">reset</button>
+          <button id="uiReset" type="button" onclick="Controller.reset(true)">reset</button>
         </div>
       </div>
       <div id="uiPanelRight">
         <h1>Learning Marlowe: A Token-Swap Contract</h1>
+        <h2>The Counterparty's View</h2>
         <p>Network: <span id="uiNetwork"></span></p>
         <hr/>
         <h2>History</h2>

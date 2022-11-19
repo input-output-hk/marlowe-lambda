@@ -10,7 +10,8 @@
 }
 
 #uiPanelLeft {
-  width: 35%;
+/*width: 35%;*/
+  width: 625px;
   border-width: 2px;
   border-style: solid;
   border-color: lightgray;

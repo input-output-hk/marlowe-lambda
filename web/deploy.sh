@@ -1,7 +1,13 @@
-#!/usr/bin/env bash
+#!/usr/bin/env nix-shell
+#!nix-shell -i bash -p nodejs
 
-set -v
+set -ve
 
-gsutil cp -a public-read both.html party.html counterparty.html view.css controller.html gs://dl.bwbush.io/marlowe-swap/
-gsutil cp -a public-read src/controller.js src/lambda.js src/secrets.js gs://dl.bwbush.io/marlowe-swap/src/
-gsutil cp -a public-read node_modules/renderjson/renderjson.js gs://dl.bwbush.io/marlowe-swap/node_modules/renderjson/
+npx webpack
+
+VERSION=0
+
+for f in both.html party.html counterparty.html view.css controller.js src/secrets.js node_modules/renderjson/renderjson.js
+do
+  gsutil -h "Cache-Control:public, max-age=60" cp -a public-read $f gs://dl.bwbush.io/marlowe-swap/$VERSION/$f
+done

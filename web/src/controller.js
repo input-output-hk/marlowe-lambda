@@ -111,11 +111,11 @@ export async function partyDeposit(single) {
     uiTxId2,
     function() {
       if (window.uiCounterpartyDeposit != null)
-	uiCounterpartyDeposit.disabled = false
+        uiCounterpartyDeposit.disabled = false
       else
-	updateConfirmed(2, function(response) {
-	  showTxId(uiTxId3, response.steps[1].txId)
-	})
+        updateConfirmed(2, function(response) {
+          showTxId(uiTxId3, response.steps[1].txId)
+        })
     },
   )
   uiPartyDeposit.disabled = true
@@ -132,7 +132,7 @@ export async function counterpartyDeposit(single) {
     uiTxId3,
     function () {
       if (window.uiCreate != null)
-	uiCreate.disabled = false
+        uiCreate.disabled = false
     },
   )
   if (window.uiCounterpartyDeposit != null)
@@ -201,10 +201,10 @@ async function updateConfirmed(steps, f) {
         uiAddressA.value = response.creation.output.datum.marloweContract.when[0].case.into_account.address
         uiCurrencyA.value = response.creation.output.datum.marloweContract.when[0].case.of_token.currency_symbol
         uiTokenA.value = response.creation.output.datum.marloweContract.when[0].case.of_token.token_name
-	uiAmountA.value = response.creation.output.datum.marloweContract.when[0].case.deposits
+        uiAmountA.value = response.creation.output.datum.marloweContract.when[0].case.deposits
         uiCurrencyB.value = response.creation.output.datum.marloweContract.when[0].then.when[0].case.of_token.currency_symbol
         uiTokenB.value = response.creation.output.datum.marloweContract.when[0].then.when[0].case.of_token.token_name
-	uiAmountB.value = response.creation.output.datum.marloweContract.when[0].then.when[0].case.deposits
+        uiAmountB.value = response.creation.output.datum.marloweContract.when[0].then.when[0].case.deposits
       }
       f(response)
     }
@@ -273,8 +273,18 @@ export async function reset(single) {
     uiCreate.disabled = false
     uiPartyDeposit.disabled = true
   }
-  if (window.uiCounterpartyDeposit != null)
+  if (window.uiCounterpartyDeposit != null) {
+    if (single) {
+      uiAddressA.value = ""
+      uiCurrencyA.value = ""
+      uiTokenA.value = ""
+      uiAmountA.value = ""
+      uiCurrencyB.value = ""
+      uiTokenB.value = ""
+      uiAmountB.value = ""
+    }
     uiCounterpartyDeposit.disabled = true
+  }
 
   document.body.style.cursor = "default"
 
@@ -285,13 +295,13 @@ export async function reset(single) {
       discoverFollowed(async function(id) {
         contractId = id
         uiContractId.innerHTML = contractId
-	showTxId(uiTxId1, id.slice(0, -2))
-	updateConfirmed(0, async function(response1) {
-	  updateConfirmed(1, async function(response2) {
-	    showTxId(uiTxId2, response2.steps[0].txId)
-	    uiCounterpartyDeposit.disabled = false
-	  })
-	})
+        showTxId(uiTxId1, id.slice(0, -2))
+        updateConfirmed(0, async function(response1) {
+          updateConfirmed(1, async function(response2) {
+            showTxId(uiTxId2, response2.steps[0].txId)
+            uiCounterpartyDeposit.disabled = false
+          })
+        })
       })
     }
   }

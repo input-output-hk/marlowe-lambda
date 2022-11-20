@@ -6,18 +6,25 @@
 import * as AWS from "aws-sdk"
 
 
-AWS.config.region = "eu-west-3"
+let FunctionName = null
 
-AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-    IdentityPoolId: "eu-west-3:1ad0476e-8d01-4565-b80e-6ec363a2cdef",
-});
+let lambda = new AWS.Lambda()
 
-const lambda = new AWS.Lambda()
+export function setCredentials(functionName, region, identityPoolId) {
+  AWS.config.region = region
+  AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: identityPoolId,
+  })
+  FunctionName = functionName
+  lambda = new AWS.Lambda()
+}
+
+
 
 async function marloweLambda(payload, f) {
 
   const input = {
-    FunctionName: "arn:aws:lambda:eu-west-3:454236594309:function:bbush-marlowe-runtime-2",
+    FunctionName: FunctionName,
     Payload: JSON.stringify(payload),
   }
 

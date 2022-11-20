@@ -15,7 +15,7 @@ export const lambda = Lambda
 const second = 1000
 
 
-var contractId = null
+let contractId = null
 
 
 export async function unfollowAll() {
@@ -224,9 +224,16 @@ async function discoverFollowed(f) {
 
 export async function initialize(single) {
 
+  Lambda.setCredentials(
+    window.secrets.functionName,
+    window.secrets.region,
+    window.secrets.identityPoolId,
+  )
+
   if (window.uiKeyA != null) {
     uiAddressA.value = window.secrets.party.address
-    uiKeyA.value = window.secrets.party.key
+    if (window.secrets.party.key != null)
+      uiKeyA.value = window.secrets.party.key
     uiCurrencyA.value = window.secrets.party.currency
     uiTokenA.value = window.secrets.party.token
     uiAmountA.value = window.secrets.party.amount
@@ -245,7 +252,8 @@ export async function initialize(single) {
 
   uiAddressB.value = window.secrets.counterparty.address
   if (window.uiKeyB != null) {
-    uiKeyB.value = window.secrets.counterparty.key
+    if (window.secrets.counterparty.key != null)
+      uiKeyB.value = window.secrets.counterparty.key
   }
 
   reset(single)

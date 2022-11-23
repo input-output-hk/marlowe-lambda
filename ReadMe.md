@@ -2,4 +2,6 @@
 
 This [Marlowe Runtime](https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe-runtime) client for the AWS Lambda service enables users to create, apply inputs to, and withdraw funds from Marlowe contract instances; it also lets them list all of the Marlowe contracts on the blockchain and to examine their on-chain status and contents.  Users do not need to install any Marlowe software and the only Cardano software they need is a wallet for signing the transactions. (The example here uses several command-line tools for convenience, but any toolset for calling AWS Lambda, manipulating JSON, and signing/submitting transactions could be used.) The service may be used with any Marlowe contract. In addition to providing the convenience of zero-installation use of Marlowe, AWS Lambda also supports the orchestration of complex workflows involving multiple Marlowe contracts or a mixture of Marlowe and non-Marlowe lambdas."
 
-See [this Jupyter notebook](examples/zcb.ipynb) for a demonstration of this client's use.
+See [this Jupyter notebook](examples/zcb.ipynb) or [this video](https://youtu.be/huXbRyrmW60) for a demonstration of this client's use from the command line.
+
+See [web/](web/) for a web Dapp that shows how to use Marowe Lambda from within a browser: [this video](https://youtu.be/o5m_y5l_i_g) shows the DApp in action, and [this video](https://youtu.be/nDWzEZDYsrw) shows it being used with a laptop for the Party and an android tablet for the Counterparty.

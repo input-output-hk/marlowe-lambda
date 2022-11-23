@@ -69,16 +69,18 @@ runLambdaWithConfig
   -> Lambda a
   -> IO a
 runLambdaWithConfig Config{..} lambda = do
+  syncCommandAddr <-  resolve chainSeekHost chainSeekCommandPort
   historyJobAddr <-  resolve historyHost historyCommandPort
   historyQueryAddr <- resolve historyHost historyQueryPort
   historySyncAddr <- resolve historyHost historySyncPort
   discoveryQueryAddr <- resolve discoveryHost discoveryQueryPort
   txJobAddr <- resolve txHost txCommandPort
   runReaderT (runLambda lambda) Services
-    { runHistoryJobClient = runClientPeerOverSocket  historyJobAddr Network.Protocol.Job.Codec.codecJob jobClientPeer
-    , runHistoryQueryClient = runClientPeerOverSocket  historyQueryAddr codecQuery queryClientPeer
-    , runHistorySyncClient = runClientPeerOverSocket  historySyncAddr codecMarloweSync marloweSyncClientPeer
-    , runTxJobClient = runClientPeerOverSocket  txJobAddr Network.Protocol.Job.Codec.codecJob jobClientPeer
+    { runSyncCommandClient = runClientPeerOverSocket syncCommandAddr Network.Protocol.Job.Codec.codecJob jobClientPeer
+    , runHistoryJobClient = runClientPeerOverSocket historyJobAddr Network.Protocol.Job.Codec.codecJob jobClientPeer
+    , runHistoryQueryClient = runClientPeerOverSocket historyQueryAddr codecQuery queryClientPeer
+    , runHistorySyncClient = runClientPeerOverSocket historySyncAddr codecMarloweSync marloweSyncClientPeer
+    , runTxJobClient = runClientPeerOverSocket txJobAddr Network.Protocol.Job.Codec.codecJob jobClientPeer
     , runDiscoveryQueryClient = runClientPeerOverSocket  discoveryQueryAddr codecQuery queryClientPeer
     }
   where

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="view.css" type="text/css" rel="stylesheet"/>
+    <script src="controller.js" type="application/javascript"> </script>
+    <script type="text/javascript" src="node_modules/renderjson/renderjson.js"></script>
+    <title>Marlowe Lambda</title>
+  </head>
+  <body id="uiBody" onload="Controller.initialize()">
+    <h1>Marlowe Lambda</h1>
+    <div id="uiRequest">
+      <hr/>
+      <div>
+	<button type="button" onclick="Controller.allContracts()">list all contracts</button>
+	<button type="button" onclick="Controller.followedContracts()">list followed contracts</button>
+      </div>
+      <hr/>
+      <div>
+	<label for="uiContractId">Contract ID:</label>
+	<input id="uiContractId" type="text"/>
+	<br/>
+	<button type="button" onclick="Controller.followContract()">follow contract</button>
+	<button type="button" onclick="Controller.unfollowContract()">unfollow contract</button>
+	<button type="button" onclick="Controller.getContract()">get contract</button>
+      </div>
+      <hr/>
+    </div>
+    <div id="uiResponse">
+      <div id="uiResult" class="pre"/>
+    </div>
+  </body>
+</html>

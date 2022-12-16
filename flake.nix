@@ -28,7 +28,9 @@
           (final: prev: {
             marlowe-lambda =
               final.haskell-nix.project' {
-                inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = CHaP; };
+                inputMap = {
+                  "https://input-output-hk.github.io/cardano-haskell-packages" = CHaP;
+                };
                 src = ./.;
                 compiler-nix-name = "ghc8107";
                 shell.tools = {
@@ -36,11 +38,10 @@
                   ghcid                   = {};
                   haskell-language-server = {};
                   hie-bios                = {};
-                # hlint                   = {};
                   pointfree               = {};
                 };
-                # Non-Haskell shell tools go here
                 shell.buildInputs = with pkgs; [
+                  pkgs.haskellPackages.hlint  # FIXME: Move to "shell.tools".
                 ];
               };
           })
@@ -55,6 +56,7 @@
 
         flake // {
           defaultPackage = flake.packages."marlowe-lambda:exe:marlowe-lambda";
+          zzzz = pkgs;
         }
 
     );

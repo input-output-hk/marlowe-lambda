@@ -15,6 +15,7 @@ executable marlowe-lambda
   hs-source-dirs    : app
   build-depends     : base >= 4.9 && < 5
                     , aws-lambda-haskell-runtime
+                    , marlowe-runtime
                     , marlowe-scaling
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances

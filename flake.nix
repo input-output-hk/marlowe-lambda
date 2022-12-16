@@ -10,9 +10,15 @@
 
     nixpkgs.follows = "haskell-nix/nixpkgs-2205";
 
+    CHaP = {
+      url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
+      flake = false;
+    };
+
   };
 
-  outputs = { self, nixpkgs, flake-utils, haskell-nix }:
+
+  outputs = { self, nixpkgs, flake-utils, haskell-nix, CHaP }:
 
     flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
 
@@ -22,6 +28,7 @@
           (final: prev: {
             marlowe-lambda =
               final.haskell-nix.project' {
+                inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = CHaP; };
                 src = ./.;
                 compiler-nix-name = "ghc8107";
                 shell.tools = {

@@ -1,6 +1,6 @@
 cabal-version      : 3.0
 name               : marlowe-lambda
-version            : 0.1.1.0
+version            : 0.2.0.0
 synopsis           : Marlowe support for IOG's Contract-Lambda
 license            : Apache-2.0
 license-file       : LICENSE
@@ -10,48 +10,12 @@ category           : Network
 build-type         : Simple
 extra-source-files : ReadMe.md
 
-library
-  exposed-modules   : Language.Marlowe.Lambda
-                      Language.Marlowe.Lambda.Build
-                      Language.Marlowe.Lambda.Client
-                      Language.Marlowe.Lambda.List
-                      Language.Marlowe.Lambda.Sign
-                      Language.Marlowe.Lambda.Submit
-                      Language.Marlowe.Lambda.Types
-  hs-source-dirs    : src
-  build-depends     : base >= 4.9 && < 5
-                    , aeson
-                    , aws-lambda-haskell-runtime
-                    , bytestring
-                    , cardano-api
-                    , containers
-                    , data-default
-                    , marlowe
-                    , marlowe-chain-sync
-                    , marlowe-protocols
-                    , marlowe-runtime
-                    , monad-control
-                    , network
-                    , text
-                    , time
-                    , transformers
-                    , transformers-base
-                    , typed-protocols
-  ghc-options       : -Wall
-                      -Wnoncanonical-monad-instances
-                      -Wincomplete-uni-patterns
-                      -Wincomplete-record-updates
-                      -Wredundant-constraints
-                      -Widentities
-                      -Wunused-packages
-  default-language  : Haskell2010
-
 executable marlowe-lambda
   main-is           : Main.hs
   hs-source-dirs    : app
   build-depends     : base >= 4.9 && < 5
                     , aws-lambda-haskell-runtime
-                    , marlowe-lambda
+                    , marlowe-scaling
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
                       -Wincomplete-uni-patterns
@@ -69,7 +33,7 @@ executable marlowe-lambda-cli
                     , aeson
                     , bytestring
                     , data-default
-                    , marlowe-lambda
+                    , marlowe-scaling
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
                       -Wincomplete-uni-patterns

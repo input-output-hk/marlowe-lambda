@@ -20,8 +20,8 @@ package cryptonite
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/marlowe-cardano.git
-  tag: c480fe4228baf46029490bf32c80fdccff92f20d
-  --sha256: 0a2f62iqv4g9ka3laya7qq15lkp9z32vh7j3hni6sf5z083105w5
+  tag: cb513983c0d07d33d020ab6c558a7c0101f96a4a
+  --sha256: 00l3xnvrb94prrz58x6wwf2w3x03y18cqm6zqdldl06pdpi2i1j4
   subdir:
     marlowe
     marlowe-chain-sync

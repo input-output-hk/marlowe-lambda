@@ -10,7 +10,7 @@ module Main (
 
 import Data.Aeson (eitherDecode, encode)
 import Data.Default (def)
-import Language.Marlowe.Lambda (handle)
+import Language.Marlowe.Runtime.Client (handle)
 import System.Environment (getArgs)
 import System.Exit (die)
 
@@ -29,7 +29,7 @@ main =
        >>= (
          \case
            Left msg    -> die msg
-           Right input -> handle input config >>= \case
+           Right input -> handle config input >>= \case
                             Right msg -> LBS8.putStrLn $ encode msg
                             Left  msg -> die . LBS8.unpack $ encode msg
        ) . eitherDecode

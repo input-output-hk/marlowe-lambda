@@ -10,9 +10,15 @@
 
     nixpkgs.follows = "haskell-nix/nixpkgs-2205";
 
+    CHaP = {
+      url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
+      flake = false;
+    };
+
   };
 
-  outputs = { self, nixpkgs, flake-utils, haskell-nix }:
+
+  outputs = { self, nixpkgs, flake-utils, haskell-nix, CHaP }:
 
     flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
 
@@ -22,6 +28,9 @@
           (final: prev: {
             marlowe-lambda =
               final.haskell-nix.project' {
+                inputMap = {
+                  "https://input-output-hk.github.io/cardano-haskell-packages" = CHaP;
+                };
                 src = ./.;
                 compiler-nix-name = "ghc8107";
                 shell.tools = {
@@ -29,11 +38,10 @@
                   ghcid                   = {};
                   haskell-language-server = {};
                   hie-bios                = {};
-                  hlint                   = {};
                   pointfree               = {};
                 };
-                # Non-Haskell shell tools go here
                 shell.buildInputs = with pkgs; [
+                  pkgs.haskellPackages.hlint  # FIXME: Move to "shell.tools".
                 ];
               };
           })
@@ -48,6 +56,7 @@
 
         flake // {
           defaultPackage = flake.packages."marlowe-lambda:exe:marlowe-lambda";
+          zzzz = pkgs;
         }
 
     );

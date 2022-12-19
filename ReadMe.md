@@ -23,6 +23,7 @@ The JSON API for Marlowe Lambda contains the following requests and responses.
 | [`withdraw`](#withdraw) | [`body`](#body)           |
 | [`sign`](#sign)         | [`tx`](#tx)               |
 | [`submit`](#submit)     | [`txId`](#txid)           |
+| [`wait`](#wait)         | [`txId`](#txid)           |
 
 
 ### Requests
@@ -106,6 +107,7 @@ Build a transaction that creates a new Marlowe contract.
 , "contract" : "/* the serialized Marlowe contract to be created */"
 , "minUtxo" : "/* the number of lovelace to send to store in the contract when it is created */"
 , "roles" : "/* an object that maps role names to the addresses to which the corresponding role tokens should be sent after it is minted */"
+, "metadata" : "/* the transaction metadata in JSON format */"
 , "addresses" : "/* the list of addresses, in addition to the change address, where UTxOs can be used as input to the transaction */"
 , "change" : "/* the address to which change from the transaction will be sent */"
 , "collateral" : "/* the list of UTxOs that may be used for collateral, or an empty list if any UTxO may be used for collateral */"
@@ -127,6 +129,7 @@ Build a transaction that applies input to a Marlowe contract.
 , "inputs" : "/* the inputs that will be applied to the contract */"
 , "validityLowerBound" : "/* the POSIX time in integer milliseconds before which the transaction is not valid */"
 , "validityUpperBound" : "/* the POSIX time in integer milliseconds after which the transaction is not valid */"
+, "metadata" : "/* the transaction metadata in JSON format */"
 , "addresses" : "/* the list of addresses, in addition to the change address, where UTxOs can be used as input to the transaction */"
 , "change" : "/* the address to which change from the transaction will be sent */"
 , "collateral" : "/* the list of UTxOs that may be used for collateral, or an empty list if any UTxO may be used for collateral */"
@@ -184,6 +187,18 @@ Submit a signed transaction to the Cardano node.
 }
 ```
 
+#### Wait
+
+Wait for the first confirmation of a transaction on the Cardano node.
+
+```json
+{
+  "request" : "wait"
+, "txId" : "/* the identifier of the transaction */"
+, "pollingSeconds" : "/* the number of seconds to wait between pollings of the Cardano node for confirmation */"
+}
+```
+
 The response is [TxId](#txid).
 
 
@@ -232,7 +247,7 @@ This response details the history of a Marlowe contract.
 }
 ```
 
-See `CreateStep` and `ContractStep` in https://github.com/input-output-hk/marlowe-cardano/blob/main/marlowe-runtime/src/Language/Marlowe/Runtime/History/Api.hs for details on the contents of the `creation` and `steps` fields.
+See `CreateStep` and `ContractStep` in https://github.com/input-output-hk/marlowe-cardano/blob/main/marlowe-runtime/history-api/Language/Marlowe/Runtime/History/Api.hs for details on the contents of the `creation` and `steps` fields.
 
 
 #### Body

@@ -25,7 +25,7 @@ export async function unfollowAll() {
 }
 
 
-function makeContract(addressA, currencyA, tokenA, amountA, addressB, currencyB, tokenB, amountB, timeout = 1669918020000) {
+function makeContract(addressA, currencyA, tokenA, amountA, addressB, currencyB, tokenB, amountB, timeout = new Date().getTime() + 60 * 60 * 1000) {
   return {
     when: [
       {

@@ -23,7 +23,7 @@ The JSON API for Marlowe Lambda contains the following requests and responses.
 | [`withdraw`](#withdraw) | [`body`](#body)           |
 | [`sign`](#sign)         | [`tx`](#tx)               |
 | [`submit`](#submit)     | [`txId`](#txid)           |
-| [`wait`](#wait)         | [`txId`](#txid)           |
+| [`wait`](#wait)         | [`txInfo`](#txinfo)       |
 
 
 ### Requests
@@ -199,7 +199,7 @@ Wait for the first confirmation of a transaction on the Cardano node.
 }
 ```
 
-The response is [TxId](#txid).
+The response is [TxInfo](#txinfo).
 
 
 ### Responses
@@ -287,3 +287,17 @@ This response contains a transaction ID.
 , "txId" : "66e4af5ec99f09c28c6378e1d9d9508d95544e258fd8c8e7f3ff168a73e7b656"
 }
 ```
+
+
+#### TxInfo
+
+This response contains full information about a transaction.
+
+```json
+{
+  "response" : "txInfo"
+, "transaction" : "/* information about the transaction */"
+}
+```
+
+See `Transaction` in https://github.com/input-output-hk/marlowe-cardano/blob/main/marlowe-runtime/src/Language/Marlowe/Runtime/Core/Api.hs for details on the contents of the `transaction` field.

@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-cabal build exe:marlowe-lambda
+cabal install exe:marlowe-lambda --installdir=./deploy --overwrite-policy=always
 
-rm deploy/marlowe-lambda marlowe-lambda.zip
-
-cp -p ./dist-newstyle/build/x86_64-linux/ghc-8.10.7/marlowe-lambda-0.1.1.0/x/marlowe-lambda/noopt/build/marlowe-lambda/marlowe-lambda deploy/marlowe-lambda
+rm marlowe-lambda.zip
 
 pushd deploy/
 

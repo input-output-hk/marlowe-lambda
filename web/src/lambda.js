@@ -2,7 +2,7 @@
  * Functions for invoking Marlowe Lambda.
  *
  * See the Haskell request and response types at
- *   https://github.com/input-output-hk/marlowe-lambda/blob/main/src/Language/Marlowe/Lambda/Types.hs
+ *   https://github.com/input-output-hk/marlowe-cardano/blob/main/marlowe-scaling/src/Language/Marlowe/Runtime/Client/Types.hs
  * for definitive details on the JSON serialization used for Marlowe Lambda.
  */
 
@@ -31,7 +31,7 @@ let lambda = new AWS.Lambda()
 export function setCredentials(functionName, region, identityPoolId) {
   AWS.config.region = region
   AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-      IdentityPoolId: identityPoolId,
+    IdentityPoolId: identityPoolId,
   })
   FunctionName = functionName
   lambda = new AWS.Lambda()
@@ -182,7 +182,7 @@ export async function unfollowContract(id, f) {
  * }
  * ```
  * See `CreateStep` and `ContractStep` in
- *   https://github.com/input-output-hk/marlowe-cardano/blob/main/marlowe-runtime/src/Language/Marlowe/Runtime/History/Api.hs
+ *   https://github.com/input-output-hk/marlowe-cardano/blob/main/marlowe-runtime/history-api/Language/Marlowe/Runtime/History/Api.hs
  * for details on the contents of the `creation` and `steps` fields.
  *
  * @param {String}   id  The contract ID.
@@ -221,6 +221,7 @@ export async function getContract(id, f) {
  *                                corresponding role tokens should be sent after it is minted.
  * @param {Number}    minUtxo     The number of lovelace to send to store in the contract when it
  *                                is created.
+ * @param {Object}    metadata    The transaction metadata.
  * @param {[String]}  addresses   The list of addresses, in addition to the change address, where
  *                                UTxOs can be used as input to the transaction.
  * @param {String}    change      The address to which change from the transaction will be sent.
@@ -230,12 +231,13 @@ export async function getContract(id, f) {
  *                                invocation, either JSON for a successful invocation or an error
  *                                String for failure.
  */
-export async function createContract(contract, roles, minUtxo, addresses, change, collateral, f) {
+export async function createContract(contract, roles, minUtxo, metadata, addresses, change, collateral, f) {
   marloweLambda({
     request: "create",
     contract: contract,
     roles: roles,
     minUtxo: minUtxo,
+    metadata: metadata,
     addresses: addresses,
     change: change,
     collateral: collateral,
@@ -268,6 +270,7 @@ export async function createContract(contract, roles, minUtxo, addresses, change
  *                                        transaction is not valid.
  * @param {[Number]}  validityUpperBound  The POSIX time in integer milliseconds after which the
  *                                        transaction is not valid.
+ * @param {Object}    metadata            The transaction metadata.
  * @param {[String]}  addresses           The list of addresses, in addition to the change address,
  *                                        where UTxOs can be used as input to the transaction.
  * @param {String}    change              The address to which change from the transaction will be
@@ -278,13 +281,14 @@ export async function createContract(contract, roles, minUtxo, addresses, change
  *                                        invocation, either JSON for a successful invocation or an
  *                                        error String for failure.
  */
-export async function applyInputs(id, inputs, validityLowerBound, validityUpperBound, addresses, change, collateral, f) {
+export async function applyInputs(id, inputs, validityLowerBound, validityUpperBound, metadata, addresses, change, collateral, f) {
   marloweLambda({
     request: "apply",
     contractId: id,
     inputs: inputs,
     validityLowerBound: validityLowerBound,
     validityUpperBound: validityUpperBound,
+    metadata: metadata,
     addresses: addresses,
     change: change,
     collateral: collateral,
@@ -386,6 +390,36 @@ export async function submit(tx, f) {
   marloweLambda({
     request: "submit",
     tx: tx,
+  }, function(response) {
+    f(response)
+  })
+}
+
+
+/**
+ * Get transaction information.
+ *
+ * A successful response is of the form:
+ * ```json
+ * {
+ *   "response" : "txInfo"
+ * , "transaction" : "(information about the transaction)"
+ * }
+ * ```
+ * See `Transaction` in
+ *   https://github.com/input-output-hk/marlowe-cardano/blob/main/marlowe-runtime/src/Language/Marlowe/Runtime/Core/Api.hs
+ * for details on the contents of the `transaction` field.
+ *
+ * @param {String}   id       The transaction ID for which information will be retrieved.
+ * @param {Number}   polling  Number of seconds to wait between polling for the transaction.
+ * @param {function} f        The function that will be called with the response of the invocation,
+ *                            either JSON for a successful invocation or an error String for failure.
+ */
+export async function getTransaction(id, f, polling = 5) {
+  marloweLambda({
+    request: "wait",
+    txId: id,
+    pollingSeconds: polling,
   }, function(response) {
     f(response)
   })

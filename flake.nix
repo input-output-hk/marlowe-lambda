@@ -56,7 +56,10 @@
 
         flake // {
           defaultPackage = flake.packages."marlowe-lambda:exe:marlowe-lambda";
-          zzzz = pkgs;
+          hydraJobs = {
+            marlowe-lambda-aws = flake.packages."marlowe-lambda:exe:marlowe-lambda";
+            marlowe-lambda-cli = flake.packages."marlowe-lambda:exe:marlowe-lambda-cli";
+          };
         }
 
     );

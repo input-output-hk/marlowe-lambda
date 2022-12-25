@@ -4,7 +4,22 @@ This [Marlowe Runtime](https://github.com/input-output-hk/marlowe-cardano/tree/m
 
 See [this Jupyter notebook](examples/zcb.ipynb) or [this video](https://youtu.be/huXbRyrmW60) for a demonstration of this client's use from the command line.
 
-See [web/](web/) for a web Dapp that shows how to use Marowe Lambda from within a browser: [this video](https://youtu.be/o5m_y5l_i_g) shows the DApp in action, and [this video](https://youtu.be/nDWzEZDYsrw) shows it being used with a laptop for the Party and an android tablet for the Counterparty.
+See [web/](web/ReadMe.md) for a web Dapp that shows how to use Marowe Lambda from within a browser: [this video](https://youtu.be/o5m_y5l_i_g) shows the DApp in action, and [this video](https://youtu.be/nDWzEZDYsrw) shows it being used with a laptop for the Party and an android tablet for the Counterparty.
+
+
+## Deployment
+
+Here is an outline of the steps required to deploy Marlowe Lambda:
+
+1.  Edit [deploy/bootstrap](deploy/bootstrap) to use either `mainnet`, the `preprod` testnet, or the `preview` testnet.
+2.  Edit the corresponding [deploy/mainnet.config](deploy/mainnet.config), [deploy/preprod.config](deploy/preprod.config), or [deploy/preview.config](deploy/preview.config) so that the hostnames and ports match your deployment of [Marlowe Runtime](https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe-runtime).
+3.  Run `./package.sh` to build the AWS Lambda ZIP file `marlowe-lambda.zip`.
+4.  In the AWS Console or at the AWS Command Line, create a new lambda function and select the runtime `Provide your own bootstrap on Amazon Linux 2` and the architecture `x86_64`.
+5.  The this ZIP file `marlowe-lambda.zip`.
+6.  Set the handler name to `marlowe`.
+7.  Set the timeout in the execution role to 45 seconds.
+8.  Make sure that the execution role has `AWSLambdaBasicExecutionRole`.
+9.  If you want to use the lambda in a web application, create a Cognito Identity Pool for it and make sure that it includes a policy with the actions `lambda:InvokeFunctionUrl`, `lambda:InvokeFunction`, `lambda:GetFunction`, and `lambda:InvokeAsync`.
 
 
 ## API

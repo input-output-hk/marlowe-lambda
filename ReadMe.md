@@ -197,7 +197,7 @@ Submit a signed transaction to the Cardano node.
 
 ```json
 {
-  "request" : "sign"
+  "request" : "submit"
 , "tx" : "/* the transaction in Cardano text-envelope format */"
 }
 ```

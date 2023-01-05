@@ -141,6 +141,7 @@ Build a transaction that applies input to a Marlowe contract.
 ```json
 {
   "request" : "apply"
+, "contractId" : "/* the contract ID to which inputs will be applied */"
 , "inputs" : "/* the inputs that will be applied to the contract */"
 , "validityLowerBound" : "/* the POSIX time in integer milliseconds before which the transaction is not valid */"
 , "validityUpperBound" : "/* the POSIX time in integer milliseconds after which the transaction is not valid */"
@@ -163,6 +164,7 @@ Build a transaction that withdraws funds paid by a Marlowe contract.
 ```json
 {
   "request" : "withdraw"
+, "contractId" : "/* the contract ID from which funds will be withdrawn */"
 , "role" : "/* the name of the role making the withdrawal */"
 , "addresses" : "/* the list of addresses, in addition to the change address, where UTxOs can be used as input to the transaction */"
 , "change" : "/* the address to which change from the transaction will be sent */"

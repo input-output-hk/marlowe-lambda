@@ -1,6 +1,6 @@
 cabal-version      : 3.0
 name               : marlowe-lambda
-version            : 0.2.0.0
+version            : 0.2.1.0
 synopsis           : Marlowe support for IOG's Contract-Lambda
 license            : Apache-2.0
 license-file       : LICENSE
@@ -16,7 +16,8 @@ executable marlowe-lambda
   build-depends     : base >= 4.9 && < 5
                     , aws-lambda-haskell-runtime
                     , marlowe-runtime
-                    , marlowe-scaling
+                    , marlowe-apps
+                    , optparse-applicative
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
                       -Wincomplete-uni-patterns
@@ -33,8 +34,13 @@ executable marlowe-lambda-cli
   build-depends     : base >= 4.9 && < 5
                     , aeson
                     , bytestring
-                    , data-default
-                    , marlowe-scaling
+                    , eventuo11y
+                    , eventuo11y-dsl
+                    , eventuo11y-json
+                    , marlowe-apps
+                    , mtl
+                    , optparse-applicative
+                    , text
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
                       -Wincomplete-uni-patterns

@@ -12,7 +12,7 @@ See [web/](web/ReadMe.md) for a web Dapp that shows how to use Marowe Lambda fro
 Here is an outline of the steps required to deploy Marlowe Lambda:
 
 1.  Edit [deploy/bootstrap](deploy/bootstrap) to use either `mainnet`, the `preprod` testnet, or the `preview` testnet.
-2.  Edit the corresponding [deploy/mainnet.config](deploy/mainnet.config), [deploy/preprod.config](deploy/preprod.config), or [deploy/preview.config](deploy/preview.config) so that the hostnames and ports match your deployment of [Marlowe Runtime](https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe-runtime).
+2.  Edit the corresponding [deploy/mainnet.env](deploy/mainnet.env), [deploy/preprod.env](deploy/preprod.env), or [deploy/preview.env](deploy/preview.env) so that the hostnames and ports match your deployment of [Marlowe Runtime](https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe-runtime). See [the help](#help) for information on the environment variables for hosts and port numbers.
 3.  Run `./package.sh` to build the AWS Lambda ZIP file `marlowe-lambda.zip`.
 4.  In the AWS Console or at the AWS Command Line, create a new lambda function and select the runtime `Provide your own bootstrap on Amazon Linux 2` and the architecture `x86_64`.
 5.  The this ZIP file `marlowe-lambda.zip`.
@@ -321,3 +321,85 @@ This response contains full information about a transaction.
 ```
 
 See `Transaction` in https://github.com/input-output-hk/marlowe-cardano/blob/main/marlowe-runtime/src/Language/Marlowe/Runtime/Core/Api.hs for details on the contents of the `transaction` field.
+
+
+## Help
+
+```console
+$ marlowe-lambda --help
+
+marlowe-lambda: run a marlowe application AWS Lambda service
+
+Usage: marlowe-lambda [--chain-seek-host HOST_NAME]
+                      [--chain-seek-command-port PORT_NUMBER]
+                      [--chain-seek-query-port PORT_NUMBER]
+                      [--chain-seek-sync-port PORT_NUMBER]
+                      [--history-host HOST_NAME]
+                      [--history-command-port PORT_NUMBER]
+                      [--history-query-port PORT_NUMBER]
+                      [--history-sync-port PORT_NUMBER]
+                      [--discovery-host HOST_NAME]
+                      [--discovery-query-port PORT_NUMBER]
+                      [--discovery-sync-port PORT_NUMBER] [--tx-host HOST_NAME]
+                      [--tx-command-port PORT_NUMBER]
+                      [--timeout-seconds INTEGER]
+
+  This executable implements an AWS Lambda service for Marlowe Runtime.
+
+Available options:
+  -h,--help                Show this help text
+  --chain-seek-host HOST_NAME
+                           The hostname of the Marlowe Runtime chain-seek
+                           server. Can be set as the environment variable
+                           MARLOWE_RT_CHAINSEEK_HOST (default: "127.0.0.1")
+  --chain-seek-command-port PORT_NUMBER
+                           The port number of the chain-seek server's job API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_CHAINSEEK_COMMAND_PORT (default: 3720)
+  --chain-seek-query-port PORT_NUMBER
+                           The port number of the chain-seek server's query API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_CHAINSEEK_QUERY_PORT (default: 3716)
+  --chain-seek-sync-port PORT_NUMBER
+                           The port number of the chain-seek server's
+                           synchronization API. Can be set as the environment
+                           variable MARLOWE_RT_CHAINSEEK_SYNC_PORT
+                           (default: 3715)
+  --history-host HOST_NAME The hostname of the Marlowe Runtime history server.
+                           Can be set as the environment variable
+                           MARLOWE_RT_HISTORY_HOST (default: "127.0.0.1")
+  --history-command-port PORT_NUMBER
+                           The port number of the history server's job API. Can
+                           be set as the environment variable
+                           MARLOWE_RT_HISTORY_COMMAND_PORT (default: 3717)
+  --history-query-port PORT_NUMBER
+                           The port number of the history server's query API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_HISTORY_QUERY_PORT (default: 3718)
+  --history-sync-port PORT_NUMBER
+                           The port number of the history server's
+                           synchronization API. Can be set as the environment
+                           variable MARLOWE_RT_HISTORY_SYNC_PORT (default: 3719)
+  --discovery-host HOST_NAME
+                           The hostname of the Marlowe Runtime discovery server.
+                           Can be set as the environment variable
+                           MARLOWE_RT_DISCOVERY_HOST (default: "127.0.0.1")
+  --discovery-query-port PORT_NUMBER
+                           The port number of the discovery server's query API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_DISCOVERY_QUERY_PORT (default: 3721)
+  --discovery-sync-port PORT_NUMBER
+                           The port number of the discovery server's
+                           synchronization API. Can be set as the environment
+                           variable MARLOWE_RT_DISCOVERY_SYNC_PORT
+                           (default: 3722)
+  --tx-host HOST_NAME      The hostname of the Marlowe Runtime transaction
+                           server. Can be set as the environment variable
+                           MARLOWE_RT_TX_HOST (default: "127.0.0.1")
+  --tx-command-port PORT_NUMBER
+                           The port number of the transaction server's job API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_TX_COMMAND_PORT (default: 3723)
+  --timeout-seconds INTEGER
+                           Time timeout in seconds for transaction confirmation.
+```

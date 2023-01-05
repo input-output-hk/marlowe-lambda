@@ -17,6 +17,7 @@ executable marlowe-lambda
                     , aws-lambda-haskell-runtime
                     , marlowe-runtime
                     , marlowe-apps
+                    , optparse-applicative
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
                       -Wincomplete-uni-patterns

@@ -13,9 +13,11 @@ module Main (
 import Aws.Lambda (Context(Context, customContext), addStandaloneLambdaHandler, defaultDispatcherOptions, runLambdaHaskellRuntime)
 import Data.IORef (readIORef)
 import Language.Marlowe.Runtime.App (handle)
+import Language.Marlowe.Runtime.App.Parser (getConfigParser)
 import Language.Marlowe.Runtime.App.Types (Config, MarloweRequest(..), MarloweResponse(..))
 import Language.Marlowe.Runtime.Core.Api (MarloweVersionTag(V1))
-import System.Environment (getArgs)
+
+import qualified Options.Applicative as O
 
 
 handler :: MarloweRequest 'V1
@@ -30,7 +32,15 @@ handler input Context{customContext} =
 main :: IO ()
 main =
   do
-    [configFile] <- getArgs
-    config <- read <$> readFile configFile
+    configParser <- getConfigParser
+    config <-
+      O.execParser
+        $ O.info
+          (O.helper {- <*> O.versionOption -} <*> configParser)
+          (
+            O.fullDesc
+              <> O.progDesc "This executable implements an AWS Lambda service for Marlowe Runtime."
+              <> O.header "marlowe-lambda: run a marlowe application AWS Lambda service"
+          )
     runLambdaHaskellRuntime defaultDispatcherOptions (pure config) id
       $ addStandaloneLambdaHandler "marlowe" handler

@@ -33,8 +33,13 @@ executable marlowe-lambda-cli
   build-depends     : base >= 4.9 && < 5
                     , aeson
                     , bytestring
+                    , eventuo11y
+                    , eventuo11y-dsl
+                    , eventuo11y-json
                     , marlowe-apps
+                    , mtl
                     , optparse-applicative
+                    , text
   ghc-options       : -Wall
                       -Wnoncanonical-monad-instances
                       -Wincomplete-uni-patterns

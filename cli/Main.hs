@@ -10,7 +10,7 @@ module Main (
 
 import Data.Aeson (eitherDecode, encode)
 import Data.Default (def)
-import Language.Marlowe.Runtime.Client (handle)
+import Language.Marlowe.Runtime.App (handle)
 import System.Environment (getArgs)
 import System.Exit (die)
 

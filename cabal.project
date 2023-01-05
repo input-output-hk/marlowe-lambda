@@ -20,14 +20,14 @@ package cryptonite
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/marlowe-cardano.git
-  tag: dd95090bd5b23738c77e35d37f25753df084b07c
-  --sha256: 0s66dbzbhsp89mgnxkzy52mmr72hkrylca1rbpx5b9bfn6v5igyv
+  tag: bd27e2cccacd4e849ba93d0ae372ea8be495e3e5
+  --sha256: 00jh1gmf4s8b8d3h0xlcwii316x167yh18x00didp7hg3wg09nak
   subdir:
     marlowe
     marlowe-chain-sync
     marlowe-protocols
     marlowe-runtime
-    marlowe-scaling
+    marlowe-apps
     async-components
     eventuo11y-extras
     libs/aeson-via-serialise

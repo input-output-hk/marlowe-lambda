@@ -12,8 +12,8 @@ module Main (
 
 import Aws.Lambda (Context(Context, customContext), addStandaloneLambdaHandler, defaultDispatcherOptions, runLambdaHaskellRuntime)
 import Data.IORef (readIORef)
-import Language.Marlowe.Runtime.Client (handle)
-import Language.Marlowe.Runtime.Client.Types (Config, MarloweRequest(..), MarloweResponse(..))
+import Language.Marlowe.Runtime.App (handle)
+import Language.Marlowe.Runtime.App.Types (Config, MarloweRequest(..), MarloweResponse(..))
 import Language.Marlowe.Runtime.Core.Api (MarloweVersionTag(V1))
 import System.Environment (getArgs)
 

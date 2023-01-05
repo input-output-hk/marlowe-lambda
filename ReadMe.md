@@ -204,6 +204,9 @@ Submit a signed transaction to the Cardano node.
 }
 ```
 
+The response is [TxId](#txid).
+
+
 #### Wait
 
 Wait for the first confirmation of a transaction on the Cardano node.

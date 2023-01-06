@@ -325,6 +325,9 @@ See `Transaction` in https://github.com/input-output-hk/marlowe-cardano/blob/mai
 
 ## Help
 
+
+### Marlowe Lambda
+
 ```console
 $ marlowe-lambda --help
 
@@ -345,6 +348,91 @@ Usage: marlowe-lambda [--chain-seek-host HOST_NAME]
                       [--timeout-seconds INTEGER]
 
   This executable implements an AWS Lambda service for Marlowe Runtime.
+
+Available options:
+  -h,--help                Show this help text
+  --chain-seek-host HOST_NAME
+                           The hostname of the Marlowe Runtime chain-seek
+                           server. Can be set as the environment variable
+                           MARLOWE_RT_CHAINSEEK_HOST (default: "127.0.0.1")
+  --chain-seek-command-port PORT_NUMBER
+                           The port number of the chain-seek server's job API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_CHAINSEEK_COMMAND_PORT (default: 3720)
+  --chain-seek-query-port PORT_NUMBER
+                           The port number of the chain-seek server's query API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_CHAINSEEK_QUERY_PORT (default: 3716)
+  --chain-seek-sync-port PORT_NUMBER
+                           The port number of the chain-seek server's
+                           synchronization API. Can be set as the environment
+                           variable MARLOWE_RT_CHAINSEEK_SYNC_PORT
+                           (default: 3715)
+  --history-host HOST_NAME The hostname of the Marlowe Runtime history server.
+                           Can be set as the environment variable
+                           MARLOWE_RT_HISTORY_HOST (default: "127.0.0.1")
+  --history-command-port PORT_NUMBER
+                           The port number of the history server's job API. Can
+                           be set as the environment variable
+                           MARLOWE_RT_HISTORY_COMMAND_PORT (default: 3717)
+  --history-query-port PORT_NUMBER
+                           The port number of the history server's query API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_HISTORY_QUERY_PORT (default: 3718)
+  --history-sync-port PORT_NUMBER
+                           The port number of the history server's
+                           synchronization API. Can be set as the environment
+                           variable MARLOWE_RT_HISTORY_SYNC_PORT (default: 3719)
+  --discovery-host HOST_NAME
+                           The hostname of the Marlowe Runtime discovery server.
+                           Can be set as the environment variable
+                           MARLOWE_RT_DISCOVERY_HOST (default: "127.0.0.1")
+  --discovery-query-port PORT_NUMBER
+                           The port number of the discovery server's query API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_DISCOVERY_QUERY_PORT (default: 3721)
+  --discovery-sync-port PORT_NUMBER
+                           The port number of the discovery server's
+                           synchronization API. Can be set as the environment
+                           variable MARLOWE_RT_DISCOVERY_SYNC_PORT
+                           (default: 3722)
+  --tx-host HOST_NAME      The hostname of the Marlowe Runtime transaction
+                           server. Can be set as the environment variable
+                           MARLOWE_RT_TX_HOST (default: "127.0.0.1")
+  --tx-command-port PORT_NUMBER
+                           The port number of the transaction server's job API.
+                           Can be set as the environment variable
+                           MARLOWE_RT_TX_COMMAND_PORT (default: 3723)
+  --timeout-seconds INTEGER
+                           Time timeout in seconds for transaction confirmation.
+```
+
+
+### Marlowe Pipe
+
+The command-line tool `marlowe-pipe` reads JSON requests for Marlowe Runtime from standard input, services the request, and writes the JSON response to standard output.
+
+```console
+$ marlowe-pipe --help
+
+marlowe-pipe: run marlowe application requests
+
+Usage: marlowe-pipe [--chain-seek-host HOST_NAME]
+                    [--chain-seek-command-port PORT_NUMBER]
+                    [--chain-seek-query-port PORT_NUMBER]
+                    [--chain-seek-sync-port PORT_NUMBER]
+                    [--history-host HOST_NAME]
+                    [--history-command-port PORT_NUMBER]
+                    [--history-query-port PORT_NUMBER]
+                    [--history-sync-port PORT_NUMBER]
+                    [--discovery-host HOST_NAME]
+                    [--discovery-query-port PORT_NUMBER]
+                    [--discovery-sync-port PORT_NUMBER] [--tx-host HOST_NAME]
+                    [--tx-command-port PORT_NUMBER] [--timeout-seconds INTEGER]
+
+  This command-line tool reads lines of JSON from standard input, interpets them
+  as Marlowe App requests, executes them, and prints the response JSON on
+  standard output.
 
 Available options:
   -h,--help                Show this help text

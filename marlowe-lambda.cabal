@@ -28,9 +28,9 @@ executable marlowe-lambda
                       -O2
   default-language  : Haskell2010
 
-executable marlowe-lambda-cli
+executable marlowe-pipe
   main-is           : Main.hs
-  hs-source-dirs    : cli
+  hs-source-dirs    : pipe
   build-depends     : base >= 4.9 && < 5
                     , aeson
                     , bytestring

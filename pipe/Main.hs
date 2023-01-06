@@ -35,7 +35,7 @@ main =
           (
             O.fullDesc
               <> O.progDesc "This command-line tool reads lines of JSON from standard input, interpets them as Marlowe App requests, executes them, and prints the response JSON on standard output."
-              <> O.header "marlowe-lambda-cli: run marlowe application requests"
+              <> O.header "marlowe-pipe: run marlowe application requests"
           )
     eventBackend <- simpleJsonStderrBackend defaultRenderSelectorJSON
     requests <- LBS8.lines <$> LBS8.getContents

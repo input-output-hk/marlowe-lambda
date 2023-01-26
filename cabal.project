@@ -23,27 +23,25 @@ source-repository-package
   tag: f8318c7aeab00a8febd417026847a35e2e24a215
   --sha256: 0d88qjv7l8qd5b3jh4qwjiwlcyyb03akb7xc2ljs4mq9yn8b6gqy
   subdir:
+    async-components
+    cardano-integration
+    eventuo11y-extras
     marlowe
+    marlowe-actus
+    marlowe-apps
     marlowe-chain-sync
+    marlowe-cli
+    marlowe-contracts
+    marlowe-integration
     marlowe-protocols
+    marlowe-protocols-test
     marlowe-runtime
     marlowe-test
-    marlowe-apps
-    async-components
-    eventuo11y-extras
     libs/aeson-via-serialise
     libs/base16-aeson
     libs/plutus-ledger-aeson
     libs/plutus-ledger-ada
     libs/plutus-ledger-slot
-
-source-repository-package
-  type: git
-  location: https://github.com/input-output-hk/marlowe
-  tag: 2f5cfbf2afd6baf3b373cec1482ea3ab92b0a949
-  --sha256: 0xvxwvznv5mi8cyscjmxs90i0ljyw44wrff23g4r1wvyhkikyprs
-  subdir: isabelle
-          marlowe-spec-test
 
 source-repository-package
   type: git
@@ -103,6 +101,7 @@ constraints:
   , cardano-protocol-tpraos == 0.1.0.0
   , cardano-slotting == 0.1.0.0
   , hasql < 1.6
+  , hasql-pool > 0.5.2.1
   , heapwords == 0.1.0.1
   , hedgehog >= 1.0
   , io-classes == 0.2.0.0
@@ -141,6 +140,14 @@ allow-newer:
   *:aeson,
   monoidal-containers:aeson,
   size-based:template-haskell
+
+source-repository-package
+  type: git
+  location: https://github.com/input-output-hk/marlowe
+  tag: 2f5cfbf2afd6baf3b373cec1482ea3ab92b0a949
+  --sha256: 0xvxwvznv5mi8cyscjmxs90i0ljyw44wrff23g4r1wvyhkikyprs
+  subdir: isabelle
+          marlowe-spec-test
 
 -- marlowe-cli only
 

@@ -5,5 +5,5 @@ tmp/
 dist-newstyle/
 deploy/lib/
 deploy/marlowe-lambda
-deploy/marlowe-lambda-cli
+deploy/marlowe-pipe
 marlowe-lambda.zip
